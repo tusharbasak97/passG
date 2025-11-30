@@ -1,3 +1,3 @@
 User-agent: *
-Disallow: 
-Sitemap: https://tusharbasak97.github.io/passG/sitemap.xml
+Disallow:
+Sitemap: https://pass-g-kohl.vercel.app/sitemap.xml
