@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="PassG by Cybersecurity Analyst Tushar Basak helps you generate quantum-grade, complex passwords instantly across lowercase, uppercase, numbers, symbols, and global scripts."
+    />
+    <meta
+      name="keywords"
+      content="password generator,strong password,super strong,create strong,complex password,strong password generator,super strong password,generate strong password,password generator digit,complex password generator,random password,strong passwords,store passwords,random password generator,weak weak good,good strong strong,paste password press,clipboard paste password,Tushar Basak,explore products,privileged access,customer experience,back customer,userfriendly interface simplifies,services provide challenges,customer experience customer,senior iam manager,access management tasks,password generate,lowercase letters,secure passwords,lastpass password generator,resource center support,generator creates random,generate strong passwords,store passwords digital,password manager,password managers,passwords password,long random unique,strong passwords cisa,couldnt log email,emma alarmed received,alert bank confirming"
+    />
+    <meta name="theme-color" content="#050b18" />
+    <link rel="canonical" href="https://passg.tusharbasak.com/" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="assets/favicon-16x16.png"
+    />
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="manifest" href="assets/site.webmanifest" />
+    <title>PassG — Strongest Password Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app" role="main">
+      <header class="hero">
+        <h1>PassG</h1>
+        <p class="lead">Generate quantum-resistant, un-typeable passwords.</p>
+        <div class="secured-badge padd-15" aria-label="Secured by Tushar Basak">
+          <i class="fas fa-shield-halved" aria-hidden="true"></i>
+          <span>Secured</span>
+        </div>
+      </header>
+
+      <section class="card generator" aria-labelledby="gen-title">
+        <div class="card-header">
+          <h2 id="gen-title">Universal Generator</h2>
+          <div class="actions">
+            <button id="copyBtn" class="btn" title="Copy password (Alt+C)">
+              Copy
+            </button>
+            <button
+              class="btn"
+              id="bookmarkBtn"
+              title="Bookmark this page"
+              aria-label="Bookmark this page"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18l-7-3-7 3V4z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="output">
+            <input
+              id="passwordOutput"
+              readonly
+              aria-live="polite"
+              aria-label="generated password"
+            />
+          </div>
+
+          <div class="controls">
+            <label class="range-label" for="length"
+              >Length: <span id="lengthVal">16</span></label
+            >
+            <input
+              type="range"
+              id="length"
+              min="10"
+              max="20"
+              value="16"
+              aria-label="Password length slider"
+            />
+
+            <div class="generate-row">
+              <div class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  class="promoted-input-checkbox"
+                  id="advancedMode"
+                />
+                <svg><use xlink:href="#checkmark-adv" /></svg>
+                <label for="advancedMode"> Advanced Mode </label>
+                <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+                  <symbol id="checkmark-adv" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-miterlimit="10"
+                      fill="none"
+                      d="M22.9 3.7l-15.2 16.6-6.6-7.1"
+                    ></path>
+                  </symbol>
+                </svg>
+              </div>
+              <button
+                id="generateBtn"
+                class="btn primary"
+                title="Generate (Alt+G)"
+              >
+                Generate
+              </button>
+            </div>
+
+            <div class="meter-row">
+              <div id="strengthMeter" class="meter" aria-hidden="true">
+                <div class="meter-fill" style="width: 0%"></div>
+              </div>
+              <div id="strengthText" class="strength-text">Entropy: — bits</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card history" aria-labelledby="history-title">
+        <div class="card-header">
+          <h2 id="history-title">History</h2>
+          <div class="actions">
+            <button id="clearHistoryBtn" class="btn">Clear History</button>
+          </div>
+        </div>
+        <ul id="historyList" class="list"></ul>
+      </section>
+
+      <div class="tip-section">
+        <small
+          >Tip: Alt+G = generate, Alt+C = copy. Your data is stored locally
+          only.</small
+        >
+      </div>
+
+      <footer class="footer">
+        <p>
+          &copy; <span id="current-year"></span> — Designed by
+          <a
+            href="https://bit.ly/m/DataBasak"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visit Tushar Basak's Portfolio"
+          >
+            <span>Tushar Basak</span>
+          </a>
+          (Cybersecurity Analyst)
+        </p>
+      </footer>
+    </main>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
