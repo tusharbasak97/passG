@@ -25,10 +25,13 @@
   const historyList = $("#historyList");
   const clearHistoryBtn = $("#clearHistoryBtn");
   const advancedModeEl = $("#advancedMode");
+  const privateModeEl = $("#privateMode");
+  const liveStatusEl = $("#liveStatus");
 
   // --- storage keys ---
   const LS_HISTORY = "passg_history_v1";
   const MODE_KEY = "passg_mode_pref_v1";
+  const PRIVATE_MODE_KEY = "passg_private_mode_v1";
   const LENGTH_SETTINGS = {
     basic: {
       min: 10,
@@ -37,19 +40,49 @@
       key: "passg_len_basic_v1",
     },
     advanced: {
-      min: 6,
-      max: 16,
-      default: 8,
+      min: 8,
+      max: 18,
+      default: 10,
       key: "passg_len_advanced_v1",
     },
   };
 
   // --- utils ---
   function randInt(n) {
+    if (n <= 0) return 0;
+    const cryptoAPI = window.crypto || window.msCrypto;
+    if (cryptoAPI && cryptoAPI.getRandomValues) {
+      const range = Math.floor(0xffffffff / n) * n;
+      const buf = new Uint32Array(1);
+      let candidate;
+      do {
+        cryptoAPI.getRandomValues(buf);
+        candidate = buf[0];
+      } while (candidate >= range);
+      return candidate % n;
+    }
     return Math.floor(Math.random() * n);
   }
   function pick(str) {
     return str.charAt(randInt(str.length));
+  }
+
+  function setDisplayedPassword(value) {
+    if (passwordOutput) {
+      passwordOutput.textContent = value;
+    }
+  }
+
+  function getDisplayedPassword() {
+    return passwordOutput ? passwordOutput.textContent || "" : "";
+  }
+
+  function announce(message) {
+    if (!liveStatusEl) return;
+    liveStatusEl.textContent = "";
+    requestAnimationFrame(() => {
+      liveStatusEl.textContent = message;
+    });
   }
 
   function generatePassword(options) {
@@ -198,27 +231,46 @@
     return chars.join("");
   }
 
-  function calculateEntropy(optsOrPwd) {
-    // Determine pool size by mode
-    const isAdvanced = !(advancedModeEl && !advancedModeEl.checked);
-    const pool = isAdvanced
-      ? 100000
-      : "abcdefghjkmnpqrstuvwxyz".length +
-        "ABCDEFGHJKMNPQRSTUVWXYZ".length +
-        "23456789".length +
-        "!@#$%^&*+-_=?:|".length;
-    const length =
-      typeof optsOrPwd === "string" ? optsOrPwd.length : optsOrPwd.length;
-    return Math.round(Math.log2(Math.max(1, pool)) * length);
+  function calculateEntropy(pwd) {
+    if (!pwd) return { entropy: 0, label: labelFromEntropy(0) };
+
+    let pool = 0;
+    const hasLower = /[a-z]/.test(pwd);
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSymbol = /[^0-9a-zA-Z]/.test(pwd);
+    const hasUnicode = /[^\u0000-\u007f]/.test(pwd);
+
+    if (hasLower) pool += 26;
+    if (hasUpper) pool += 26;
+    if (hasNumber) pool += 10;
+    if (hasSymbol) pool += 33;
+    if (hasUnicode) pool += 100;
+
+    const uniqueChars = new Set(pwd).size;
+    pool = Math.max(pool, uniqueChars);
+
+    const freq = Object.create(null);
+    for (const ch of pwd) {
+      freq[ch] = (freq[ch] || 0) + 1;
+    }
+    let penalty = 0;
+    for (const count of Object.values(freq)) {
+      if (count > 1) penalty += (count - 1) * 1.5;
+    }
+
+    const entropy = Math.max(
+      0,
+      Math.round(Math.log2(Math.max(2, pool)) * pwd.length - penalty)
+    );
+    return { entropy, label: labelFromEntropy(entropy) };
   }
 
-  function updateStrength(pwd, opts) {
-    const entropy = calculateEntropy(opts);
+  function updateStrength(pwd) {
+    const { entropy, label } = calculateEntropy(pwd);
     const pct = Math.min(100, Math.round((entropy / 128) * 100)); // Scale up for high entropy
     strengthMeter.style.width = pct + "%";
-    strengthText.textContent = `Entropy: ${entropy} bits — ${labelFromEntropy(
-      entropy
-    )}`;
+    strengthText.textContent = `Entropy: ${entropy} bits — ${label}`;
   }
 
   function labelFromEntropy(e) {
@@ -254,6 +306,18 @@
 
   function saveModePreference(mode) {
     localStorage.setItem(MODE_KEY, mode === "advanced" ? "advanced" : "basic");
+  }
+
+  function loadPrivateModePreference() {
+    return localStorage.getItem(PRIVATE_MODE_KEY) === "1";
+  }
+
+  function savePrivateModePreference(enabled) {
+    localStorage.setItem(PRIVATE_MODE_KEY, enabled ? "1" : "0");
+  }
+
+  function isPrivateMode() {
+    return privateModeEl ? privateModeEl.checked : false;
   }
 
   function getLengthSettings(mode) {
@@ -297,6 +361,7 @@
   }
 
   function addHistory(entry) {
+    if (isPrivateMode()) return;
     const hist = loadJSON(LS_HISTORY);
     hist.unshift(entry);
     while (hist.length > 200) hist.pop();
@@ -318,6 +383,22 @@
     }
 
     historyList.innerHTML = "";
+    if (isPrivateMode()) {
+      const notice = document.createElement("li");
+      notice.className = "history-empty";
+      notice.textContent = "History is disabled during private sessions.";
+      historyList.appendChild(notice);
+      return;
+    }
+
+    if (!validHist.length) {
+      const emptyMsg = document.createElement("li");
+      emptyMsg.className = "history-empty";
+      emptyMsg.textContent = "No passwords generated yet.";
+      historyList.appendChild(emptyMsg);
+      return;
+    }
+
     validHist.forEach((h, idx) => {
       const li = document.createElement("li");
       const left = document.createElement("div");
@@ -519,12 +600,16 @@
   }
 
   function clearHistory() {
+    if (isPrivateMode()) {
+      return; // Don't allow clearing in private mode
+    }
     showConfirmDialog(
       "Are you sure you want to clear all saved password history?"
     ).then((confirmed) => {
       if (confirmed) {
         saveJSON(LS_HISTORY, []);
         renderHistory();
+        announce("History cleared");
       }
     });
   }
@@ -537,9 +622,11 @@
         if (window.innerWidth >= 768) {
           flashToast("Copied to clipboard");
         }
+        announce("Copied to clipboard");
       },
       () => {
         alert("Copy failed — your browser may block clipboard access.");
+        announce("Copy failed");
       }
     );
   }
@@ -585,9 +672,40 @@
     });
   }
 
+  if (privateModeEl) {
+    privateModeEl.checked = loadPrivateModePreference();
+
+    // Update clear history button state based on private mode
+    function updateClearHistoryButton() {
+      if (privateModeEl.checked) {
+        clearHistoryBtn.disabled = true;
+        clearHistoryBtn.style.opacity = "0.5";
+        clearHistoryBtn.style.cursor = "not-allowed";
+      } else {
+        clearHistoryBtn.disabled = false;
+        clearHistoryBtn.style.opacity = "";
+        clearHistoryBtn.style.cursor = "";
+      }
+    }
+
+    // Initialize button state
+    updateClearHistoryButton();
+
+    privateModeEl.addEventListener("change", () => {
+      savePrivateModePreference(privateModeEl.checked);
+      updateClearHistoryButton();
+      renderHistory();
+      announce(
+        privateModeEl.checked
+          ? "Private session enabled. History paused."
+          : "Private session disabled. History will resume."
+      );
+    });
+  }
+
   generateBtn.addEventListener("click", () => doGenerate());
   copyBtn.addEventListener("click", () =>
-    copyToClipboard(passwordOutput.value)
+    copyToClipboard(getDisplayedPassword())
   );
   clearHistoryBtn.addEventListener("click", clearHistory);
 
@@ -599,7 +717,7 @@
     }
     if (e.altKey && !e.shiftKey && e.code === "KeyC") {
       e.preventDefault();
-      copyToClipboard(passwordOutput.value);
+      copyToClipboard(getDisplayedPassword());
     }
     if (e.altKey && !e.shiftKey && e.code === "KeyX") {
       e.preventDefault();
@@ -617,10 +735,10 @@
       const pwd = generatePassword(opts);
       last = pwd;
       addHistory({ pwd, ts: Date.now(), opts });
-      if (i === 0) passwordOutput.value = pwd;
+      if (i === 0) setDisplayedPassword(pwd);
       // if multiple, append more in history but show one in UI
     }
-    updateStrength(last, opts);
+    updateStrength(last);
   }
 
   function getOptions() {

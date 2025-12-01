@@ -48,13 +48,51 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- SVG definitions for checkbox symbols -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+      <symbol id="checkmark-adv" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-miterlimit="10"
+          fill="none"
+          d="M22.9 3.7l-15.2 16.6-6.6-7.1"
+        ></path>
+      </symbol>
+    </svg>
+
     <main class="app" role="main">
       <header class="hero">
         <h1>PassG</h1>
         <p class="lead">Generate quantum-resistant, un-typeable passwords.</p>
-        <div class="secured-badge padd-15" aria-label="Secured by Tushar Basak">
-          <i class="fas fa-shield-halved" aria-hidden="true"></i>
-          <span>Secured</span>
+        <div class="hero-badges">
+          <div
+            class="secured-badge padd-15"
+            aria-label="Secured by Tushar Basak"
+          >
+            <i class="fas fa-shield-halved" aria-hidden="true"></i>
+            <span>Secured</span>
+          </div>
+          <div class="slider-checkbox hero-private">
+            <input
+              class="switch"
+              type="checkbox"
+              id="privateMode"
+              name="privateMode"
+              value="private"
+            />
+            <label for="privateMode">
+              <span class="switch-x-text">Private </span>
+              <span class="switch-x-toggletext">
+                <span class="switch-x-unchecked"
+                  ><span class="switch-x-hiddenlabel">Unchecked: </span
+                  >Off</span
+                >
+                <span class="switch-x-checked"
+                  ><span class="switch-x-hiddenlabel">Checked: </span>On</span
+                >
+              </span>
+            </label>
+          </div>
         </div>
       </header>
 
@@ -70,12 +108,14 @@
 
         <div class="card-body">
           <div class="output">
-            <input
+            <div
               id="passwordOutput"
-              readonly
+              class="output-display"
+              role="status"
               aria-live="polite"
               aria-label="generated password"
-            />
+              tabindex="0"
+            ></div>
           </div>
 
           <div class="controls">
@@ -100,16 +140,6 @@
                 />
                 <svg><use xlink:href="#checkmark-adv" /></svg>
                 <label for="advancedMode"> Advanced Mode </label>
-                <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
-                  <symbol id="checkmark-adv" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-miterlimit="10"
-                      fill="none"
-                      d="M22.9 3.7l-15.2 16.6-6.6-7.1"
-                    ></path>
-                  </symbol>
-                </svg>
               </div>
               <button
                 id="generateBtn"
@@ -161,6 +191,13 @@
         </p>
       </footer>
     </main>
+
+    <div
+      id="liveStatus"
+      class="sr-only"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
 
     <script src="script.js" defer></script>
   </body>
