@@ -60,12 +60,12 @@
   }
 
   function generateBasic(len) {
-    // Basic mode: include lowercase, uppercase, numbers, symbols
-    // Exclude similar (o,0,i,l,1) and ambiguous (~,;:.{}<>[]()/\'`)
+    // Basic mode: include lowercase, uppercase, numbers, symbols (ambiguous included)
+    // Exclude only lookalikes (o,0,i,l,1) to keep output varied while remaining readable
     const lowercase = "abcdefghjkmnpqrstuvwxyz"; // exclude i, l, o
     const uppercase = "ABCDEFGHJKMNPQRSTUVWXYZ"; // exclude I, L, O
     const numbers = "23456789"; // exclude 0,1
-    const symbolsAll = "!@#$%^&*+-_=?:|"; // exclude ambiguous set ~ ; : . { } < > [ ] ( ) / \\ ' `
+    const symbolsAll = "!@#$%^&*+-_=?:|~;:.{}<>[]()/\\'`"; // include full ambiguous set
     const pool = lowercase + uppercase + numbers + symbolsAll;
     let out = "";
     for (let i = 0; i < len; i++) {
@@ -75,41 +75,48 @@
   }
 
   function generateUniversal(len) {
-    // Ranges: Latin-1, Latin Ext-A, Greek, Cyrillic, Hebrew, Arabic, Devanagari, Math, Hiragana, Katakana, CJK, Emojis
-    // Also include standard ASCII (0x21-0x7E) to ensure it's truly universal
+    // Advanced mode: ensures at least 1 lowercase, 1 uppercase, 1 number, 1 symbol
+    // for website compatibility, while maintaining diverse character generation
+    const lowercase = "abcdefghijklmnopqrstuvwxyz";
+    const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*+-_=?:|";
+
+    // Extended ranges for diversity beyond required types
     const ranges = [
-      { range: [0x0021, 0x007e], group: "ascii" }, // ASCII
-      { range: [0x00a1, 0x00ff], group: "latin1" }, // Latin-1
-      { range: [0x0100, 0x017f], group: "latinext" }, // Latin Extended-A
-      { range: [0x0370, 0x03ff], group: "greek" }, // Greek
-      { range: [0x0400, 0x04ff], group: "cyrillic" }, // Cyrillic
-      { range: [0x0590, 0x05ff], group: "hebrew" }, // Hebrew
-      { range: [0x0600, 0x06ff], group: "arabic" }, // Arabic
-      { range: [0x0900, 0x097f], group: "devanagari" }, // Devanagari
-      { range: [0x0e00, 0x0e7f], group: "thai" }, // Thai
-      { range: [0x1100, 0x11ff], group: "hangul" }, // Hangul Jamo
-      { range: [0x2200, 0x22ff], group: "math" }, // Math symbols
-      { range: [0x3040, 0x309f], group: "hiragana" }, // Hiragana
-      { range: [0x30a0, 0x30ff], group: "katakana" }, // Katakana
-      { range: [0x4e00, 0x9fbf], group: "cjk" }, // CJK Unified
-      { range: [0x1f300, 0x1f64f], group: "emoji" }, // Emojis
+      { range: [0x0021, 0x007e], group: "ascii" },
+      { range: [0x00a1, 0x00ff], group: "latin1" },
+      { range: [0x0100, 0x017f], group: "latinext" },
+      { range: [0x0370, 0x03ff], group: "greek" },
+      { range: [0x0400, 0x04ff], group: "cyrillic" },
+      { range: [0x0590, 0x05ff], group: "hebrew" },
+      { range: [0x0600, 0x06ff], group: "arabic" },
+      { range: [0x0900, 0x097f], group: "devanagari" },
+      { range: [0x0e00, 0x0e7f], group: "thai" },
+      { range: [0x1100, 0x11ff], group: "hangul" },
+      { range: [0x2200, 0x22ff], group: "math" },
+      { range: [0x3040, 0x309f], group: "hiragana" },
+      { range: [0x30a0, 0x30ff], group: "katakana" },
+      { range: [0x4e00, 0x9fbf], group: "cjk" },
+      { range: [0x1f300, 0x1f64f], group: "emoji" },
     ];
 
-    let out = "";
     const usedGroups = new Set();
     const usedChars = new Set();
 
+    // Helper to pick from pool
+    const pickFrom = (str) => str.charAt(randInt(str.length));
+
+    // Step 1: Generate diverse password without worrying about requirements
+    let chars = [];
     for (let i = 0; i < len; i++) {
       let attempts = 0;
       let char = "";
       let selectedRange;
 
-      // Try to pick a character with advanced constraints
       while (attempts < 100) {
-        // Select a random range
         selectedRange = ranges[randInt(ranges.length)];
 
-        // Skip if this script group was already used (except ASCII which can repeat)
         if (
           usedGroups.has(selectedRange.group) &&
           !["ascii", "latin1", "latinext", "math"].includes(selectedRange.group)
@@ -118,21 +125,17 @@
           continue;
         }
 
-        // Generate character from range
         const r = selectedRange.range;
         char = String.fromCodePoint(randInt(r[1] - r[0] + 1) + r[0]);
 
-        // Ensure character hasn't been used at all in this password
         if (usedChars.has(char)) {
           attempts++;
           continue;
         }
 
-        // Valid character found
         break;
       }
 
-      // Fallback if constraints too strict
       if (attempts >= 100) {
         const fallbackRange = ranges[0].range;
         for (let fb = 0; fb < 200; fb++) {
@@ -143,12 +146,47 @@
         }
       }
 
-      out += char;
+      chars.push(char);
       usedChars.add(char);
       usedGroups.add(selectedRange.group);
     }
 
-    return out;
+    // Step 2: Ensure required character types by replacing random positions
+    const hasLower = chars.some(c => lowercase.includes(c));
+    const hasUpper = chars.some(c => uppercase.includes(c));
+    const hasNumber = chars.some(c => numbers.includes(c));
+    const hasSymbol = chars.some(c => symbols.includes(c));
+
+    // Create array of unused positions for replacement
+    const positions = Array.from({ length: chars.length }, (_, i) => i);
+    
+    // Shuffle positions for truly random placement
+    for (let i = positions.length - 1; i > 0; i--) {
+      const j = randInt(i + 1);
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+
+    let posIdx = 0;
+    if (!hasLower) {
+      chars[positions[posIdx++]] = pickFrom(lowercase);
+    }
+    if (!hasUpper) {
+      chars[positions[posIdx++]] = pickFrom(uppercase);
+    }
+    if (!hasNumber) {
+      chars[positions[posIdx++]] = pickFrom(numbers);
+    }
+    if (!hasSymbol) {
+      chars[positions[posIdx++]] = pickFrom(symbols);
+    }
+
+    // Step 3: Final shuffle to eliminate any patterns
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = randInt(i + 1);
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+
+    return chars.join("");
   }
 
   function calculateEntropy(optsOrPwd) {
@@ -241,7 +279,10 @@
   function updateLengthFromSlider() {
     const mode = currentMode();
     const parsed = parseInt(lengthEl.value, 10);
-    const sanitized = saveLengthValue(mode, Number.isFinite(parsed) ? parsed : getLengthSettings(mode).default);
+    const sanitized = saveLengthValue(
+      mode,
+      Number.isFinite(parsed) ? parsed : getLengthSettings(mode).default
+    );
     lengthEl.value = sanitized;
     lengthVal.textContent = sanitized;
   }
@@ -308,7 +349,7 @@
       overlay.style.left = "0";
       overlay.style.width = "100%";
       overlay.style.height = "100%";
-      overlay.style.background = "rgba(0, 0, 0, 0.7)";
+      overlay.style.background = "hsla(0, 0%, 0%, 0.70)";
       overlay.style.backdropFilter = "blur(8px)";
       overlay.style.display = "flex";
       overlay.style.alignItems = "center";
@@ -318,13 +359,15 @@
 
       // Create dialog
       const dialog = document.createElement("div");
-      dialog.style.background = "linear-gradient(180deg, hsl(218 40% 16% / 0.95), hsl(218 35% 10% / 0.98))";
+      dialog.style.background =
+        "linear-gradient(180deg, hsl(218 40% 16% / 0.95), hsl(218 35% 10% / 0.98))";
       dialog.style.borderRadius = "16px";
       dialog.style.padding = "2rem";
       dialog.style.maxWidth = "400px";
       dialog.style.width = "90%";
       dialog.style.border = "1px solid hsl(262 82% 59% / 0.3)";
-      dialog.style.boxShadow = "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px hsl(262 80% 60% / 0.2)";
+      dialog.style.boxShadow =
+        "0 20px 60px hsla(0, 0%, 0%, 0.50), 0 0 40px hsl(262 80% 60% / 0.2)";
       dialog.style.animation = "slideUp 0.3s ease-out";
 
       // Message
@@ -362,7 +405,8 @@
       confirmBtn.style.padding = "0.75rem 1.5rem";
       confirmBtn.style.borderRadius = "8px";
       confirmBtn.style.border = "none";
-      confirmBtn.style.background = "linear-gradient(135deg, hsl(262 82% 59%), hsl(189 95% 42%))";
+      confirmBtn.style.background =
+        "linear-gradient(135deg, hsl(262 82% 59%), hsl(189 95% 42%))";
       confirmBtn.style.color = "white";
       confirmBtn.style.fontSize = "0.95rem";
       confirmBtn.style.fontWeight = "600";
@@ -466,14 +510,14 @@
   }
 
   function clearHistory() {
-    showConfirmDialog("Are you sure you want to clear all saved password history?").then(
-      (confirmed) => {
-        if (confirmed) {
-          saveJSON(LS_HISTORY, []);
-          renderHistory();
-        }
+    showConfirmDialog(
+      "Are you sure you want to clear all saved password history?"
+    ).then((confirmed) => {
+      if (confirmed) {
+        saveJSON(LS_HISTORY, []);
+        renderHistory();
       }
-    );
+    });
   }
 
   // --- clipboard & helpers ---
@@ -498,14 +542,16 @@
     el.style.right = "20px";
     el.style.bottom = "20px";
     el.style.padding = "12px 18px";
-    el.style.background = "linear-gradient(135deg, hsl(262 82% 59% / 0.95), hsl(189 95% 42% / 0.95))";
+    el.style.background =
+      "linear-gradient(135deg, hsl(262 82% 59% / 0.95), hsl(189 95% 42% / 0.95))";
     el.style.backdropFilter = "blur(10px)";
     el.style.borderRadius = "12px";
     el.style.border = "1px solid hsl(262 82% 59% / 0.5)";
     el.style.color = "hsl(0, 0%, 100%)";
     el.style.fontWeight = "600";
     el.style.fontSize = "0.9rem";
-    el.style.boxShadow = "0 8px 24px hsl(262 80% 60% / 0.4), 0 0 20px hsl(262 80% 60% / 0.3)";
+    el.style.boxShadow =
+      "0 8px 24px hsl(262 80% 60% / 0.4), 0 0 20px hsl(262 80% 60% / 0.3)";
     el.style.transition = "opacity 0.3s ease-out";
     el.style.zIndex = "9999";
     document.body.appendChild(el);

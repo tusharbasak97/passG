@@ -57,15 +57,21 @@ body {
 
 /* App Container */
 .app {
-  /* Reduced max-width for a tighter look */
-  width: min(50rem, 100vw);
+  /* Full width on mobile, centered on desktop */
+  width: 100vw;
   min-height: 100vh;
   /* Prevent the page from shrinking below this width (adjustable) */
-  min-width: 36rem; /* ~576px - change this value if you prefer a different lower bound */
+  min-width: 26rem; /* Minimum responsive width */
   padding: clamp(1rem, 2.5vw, 2rem);
   display: flex;
   flex-direction: column;
   gap: var(--gap-lg);
+}
+
+@media (min-width: 64rem) {
+  .app {
+    width: min(50rem, 100vw);
+  }
 }
 
 /* Desktop Layout Optimization (Fit to Screen) */
@@ -129,21 +135,17 @@ body {
     font-size: 0.75rem !important;
   }
 }
-/* Scrollbar Styling */
-@media (max-width: 63.9375rem) {
-  ::-webkit-scrollbar {
-    width: 0.35rem;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-accent);
-    border-radius: var(--radius-full);
-  }
+/* Scrollbar Styling - Hide on all screens */
+html,
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
-@media (min-width: 64rem) {
-  html,
-  body {
-    scrollbar-width: none;
-  }
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.app::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Typography & Hero */
@@ -598,6 +600,18 @@ input[type="range"]::-moz-range-thumb:active {
   font-size: 0.875rem;
   padding: var(--gap-md) 0;
   flex-shrink: 0;
+}
+
+@media (max-width: 1023px) {
+  .tip-section {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) and (max-height: 800px) {
+  .tip-section {
+    display: none;
+  }
 }
 
 /* Footer */
