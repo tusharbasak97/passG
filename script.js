@@ -61,17 +61,26 @@
 
   function generateBasic(len) {
     // Basic mode: include lowercase, uppercase, numbers, symbols (ambiguous included)
-    // Exclude only lookalikes (o,0,i,l,1) to keep output varied while remaining readable
+    // Exclude only lookalikes (o,0,i,l,1) and guarantee non-repeating characters per request
     const lowercase = "abcdefghjkmnpqrstuvwxyz"; // exclude i, l, o
     const uppercase = "ABCDEFGHJKMNPQRSTUVWXYZ"; // exclude I, L, O
     const numbers = "23456789"; // exclude 0,1
     const symbolsAll = "!@#$%^&*+-_=?:|~;:.{}<>[]()/\\'`"; // include full ambiguous set
-    const pool = lowercase + uppercase + numbers + symbolsAll;
-    let out = "";
-    for (let i = 0; i < len; i++) {
-      out += pool.charAt(randInt(pool.length));
+    const uniquePool = Array.from(
+      new Set((lowercase + uppercase + numbers + symbolsAll).split(""))
+    );
+
+    if (len > uniquePool.length) {
+      len = uniquePool.length;
     }
-    return out;
+
+    // Fisher-Yates shuffle and take the first len characters for a non-repeating sequence
+    for (let i = uniquePool.length - 1; i > 0; i--) {
+      const j = randInt(i + 1);
+      [uniquePool[i], uniquePool[j]] = [uniquePool[j], uniquePool[i]];
+    }
+
+    return uniquePool.slice(0, len).join("");
   }
 
   function generateUniversal(len) {
@@ -152,14 +161,14 @@
     }
 
     // Step 2: Ensure required character types by replacing random positions
-    const hasLower = chars.some(c => lowercase.includes(c));
-    const hasUpper = chars.some(c => uppercase.includes(c));
-    const hasNumber = chars.some(c => numbers.includes(c));
-    const hasSymbol = chars.some(c => symbols.includes(c));
+    const hasLower = chars.some((c) => lowercase.includes(c));
+    const hasUpper = chars.some((c) => uppercase.includes(c));
+    const hasNumber = chars.some((c) => numbers.includes(c));
+    const hasSymbol = chars.some((c) => symbols.includes(c));
 
     // Create array of unused positions for replacement
     const positions = Array.from({ length: chars.length }, (_, i) => i);
-    
+
     // Shuffle positions for truly random placement
     for (let i = positions.length - 1; i > 0; i--) {
       const j = randInt(i + 1);
