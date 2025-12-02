@@ -1,3 +1,9 @@
+/*
+ * DEPRECATED: This file has been refactored into modular components.
+ * See js/main.js for the new entry point.
+ * Old monolithic code kept for reference only.
+ */
+
 /* PassG — client-side password & passphrase generator with history/favorites */
 (function () {
   // Polyfill for requestIdleCallback

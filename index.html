@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+    />
+    <meta
       name="description"
       content="PassG by Cybersecurity Analyst Tushar Basak helps you generate quantum-grade, complex passwords instantly across lowercase, uppercase, numbers, symbols, and global scripts."
     />
@@ -63,7 +67,9 @@
     <main class="app" role="main">
       <header class="hero">
         <h1>PassG</h1>
-        <p class="lead">Generate quantum-resistant, un-typeable passwords.</p>
+        <p class="lead">
+          Secure Passwords. Smart Passphrases. Unique Usernames.
+        </p>
         <div class="hero-badges">
           <div
             class="secured-badge padd-15"
@@ -98,11 +104,59 @@
 
       <section class="card generator" aria-labelledby="gen-title">
         <div class="card-header">
-          <h2 id="gen-title">Universal Generator</h2>
+          <div class="generator-type-selector">
+            <div class="custom-dropdown" id="customDropdown">
+              <div
+                class="dropdown-trigger"
+                tabindex="0"
+                role="button"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+              >
+                <span class="selected-text">Password</span>
+                <div class="arrow"></div>
+              </div>
+              <ul class="dropdown-options" role="listbox">
+                <li
+                  class="dropdown-option selected"
+                  data-value="password"
+                  role="option"
+                  aria-selected="true"
+                >
+                  Password
+                </li>
+                <li
+                  class="dropdown-option"
+                  data-value="passphrase"
+                  role="option"
+                  aria-selected="false"
+                >
+                  Passphrase
+                </li>
+                <li
+                  class="dropdown-option"
+                  data-value="username"
+                  role="option"
+                  aria-selected="false"
+                >
+                  Username
+                </li>
+              </ul>
+            </div>
+            <select
+              id="generatorType"
+              class="sr-only"
+              aria-hidden="true"
+              tabindex="-1"
+            >
+              <option value="password">Password</option>
+              <option value="passphrase">Passphrase</option>
+              <option value="username">Username</option>
+            </select>
+            <span class="generator-label">Generator</span>
+          </div>
           <div class="actions">
-            <button id="copyBtn" class="btn" title="Copy password (Alt+C)">
-              Copy
-            </button>
+            <button id="copyBtn" class="btn" title="Copy (Alt+C)">Copy</button>
           </div>
         </div>
 
@@ -113,12 +167,13 @@
               class="output-display"
               role="status"
               aria-live="polite"
-              aria-label="generated password"
+              aria-label="generated output"
               tabindex="0"
             ></div>
           </div>
 
-          <div class="controls">
+          <!-- Password Controls -->
+          <div id="passwordControls" class="controls">
             <label class="range-label" for="length"
               >Length: <span id="lengthVal">12</span></label
             >
@@ -145,11 +200,127 @@
                 id="generateBtn"
                 class="btn primary"
                 title="Generate (Alt+G)"
+                data-generate
+                type="button"
               >
                 Generate
               </button>
             </div>
+          </div>
 
+          <!-- Passphrase Controls -->
+          <div id="passphraseControls" class="controls" style="display: none">
+            <label class="range-label" for="wordCount"
+              >Word Count: <span id="wordCountVal">3</span></label
+            >
+            <input
+              type="range"
+              id="wordCount"
+              min="3"
+              max="6"
+              value="3"
+              aria-label="Passphrase word count slider"
+            />
+
+            <div class="generate-row">
+              <div class="checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  class="promoted-input-checkbox"
+                  id="passphraseAdvanced"
+                />
+                <svg><use xlink:href="#checkmark-adv" /></svg>
+                <label for="passphraseAdvanced"> Advanced Mode </label>
+              </div>
+              <button
+                class="btn primary"
+                title="Generate (Alt+G)"
+                data-generate
+                type="button"
+              >
+                Generate
+              </button>
+            </div>
+          </div>
+
+          <!-- Username Controls -->
+          <div id="usernameControls" class="controls" style="display: none">
+            <div
+              class="username-styles"
+              role="group"
+              aria-label="Username style"
+            >
+              <label class="username-style-option" for="usernameStyleRandom">
+                <div class="checkbox-wrapper">
+                  <input
+                    type="checkbox"
+                    class="promoted-input-checkbox"
+                    id="usernameStyleRandom"
+                    name="usernameStyle"
+                    value="random"
+                    data-username-style
+                    checked
+                  />
+                  <svg><use xlink:href="#checkmark-adv" /></svg>
+                  <span class="checkbox-label"> Random </span>
+                </div>
+              </label>
+              <label
+                class="username-style-option"
+                for="usernameStyleProfessional"
+              >
+                <div class="checkbox-wrapper">
+                  <input
+                    type="checkbox"
+                    class="promoted-input-checkbox"
+                    id="usernameStyleProfessional"
+                    name="usernameStyle"
+                    value="professional"
+                    data-username-style
+                  />
+                  <svg><use xlink:href="#checkmark-adv" /></svg>
+                  <span class="checkbox-label"> Professional </span>
+                </div>
+              </label>
+              <label class="username-style-option" for="usernameStyleGamer">
+                <div class="checkbox-wrapper">
+                  <input
+                    type="checkbox"
+                    class="promoted-input-checkbox"
+                    id="usernameStyleGamer"
+                    name="usernameStyle"
+                    value="gamer"
+                    data-username-style
+                  />
+                  <svg><use xlink:href="#checkmark-adv" /></svg>
+                  <span class="checkbox-label"> Gamer </span>
+                </div>
+              </label>
+            </div>
+
+            <div class="generate-row username-actions">
+              <input
+                type="text"
+                id="usernameKeyword"
+                class="text-input"
+                placeholder="give keyword (optional)"
+                maxlength="20"
+                pattern="[a-zA-Z0-9]+"
+                title="Alphanumeric characters only"
+                aria-label="Keyword (Optional)"
+              />
+              <button
+                class="btn primary"
+                title="Generate (Alt+G)"
+                data-generate
+                type="button"
+              >
+                Generate
+              </button>
+            </div>
+          </div>
+
+          <div class="strength-container">
             <div class="meter-row">
               <div id="strengthMeter" class="meter" aria-hidden="true">
                 <div class="meter-fill" style="width: 0%"></div>
@@ -199,6 +370,34 @@
       aria-atomic="true"
     ></div>
 
-    <script src="js/script.js" defer></script>
+    <script type="module" src="js/main.js"></script>
+    <script>
+      // Register Service Worker
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/js/sw.js")
+            .then((registration) => {})
+            .catch((err) => {});
+        });
+      }
+
+      // Handle URL parameters for app shortcuts
+      const urlParams = new URLSearchParams(window.location.search);
+      const type = urlParams.get("type");
+      if (type && ["password", "passphrase", "username"].includes(type)) {
+        window.addEventListener("load", () => {
+          const dropdown = document.getElementById("generatorType");
+          if (dropdown) {
+            dropdown.value = type;
+            dropdown.dispatchEvent(new Event("change"));
+          }
+        });
+      }
+
+      // Offline detection
+      window.addEventListener("online", () => {});
+      window.addEventListener("offline", () => {});
+    </script>
   </body>
 </html>

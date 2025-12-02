@@ -1,102 +1,109 @@
-# PassG — Strongest Password Generator
+# PassG — Secure Passwords. Smart Passphrases. Unique Usernames.
 
-A sleek, secure, and user-friendly web app for generating strong, quantum-resistant passwords. Built with modern web technologies, PassG offers both basic and advanced password generation modes, local history storage, and PWA capabilities for offline use.
+PassG is a modern, privacy-first, and cryptographically secure generator tool designed for the security-conscious user. It goes beyond simple random strings to offer a comprehensive suite of identity generation tools: **Quantum-Resistant Passwords**, **Memorable Passphrases**, and **Unique Usernames**.
 
-## Features
+Built entirely with client-side technologies, PassG ensures that **no data ever leaves your browser**.
 
-- **Quantum-Resistant Passwords**: Generates complex passwords using lowercase, uppercase, numbers, symbols, and global scripts.
-- **Basic & Advanced Modes**: Switch between simple and highly secure password generation with customizable constraints.
-- **Password Strength Meter**: Real-time entropy calculation to assess password strength.
-- **History Management**: Store and manage generated passwords locally with timestamps.
-- **Keyboard Shortcuts**: Alt+G to generate, Alt+C to copy for quick access.
-- **PWA Ready**: Installable as a progressive web app with offline support.
-- **Responsive Design**: Optimized for desktop, tablet, and mobile devices.
-- **SEO Optimized**: Includes meta tags, sitemap, and robots.txt for search engine visibility.
-- **Bookmark Button**: Easy bookmarking with Ctrl+D shortcut.
+---
 
-## Technologies Used
+## 🛡️ Why Trust PassG?
 
-- **HTML5**: Semantic markup and accessibility features.
-- **CSS3**: Responsive design with custom properties, animations, and media queries.
-- **JavaScript (ES6+)**: DOM manipulation, password algorithms, and local storage.
-- **PWA**: Manifest file and service worker for installability.
-- **Fonts**: Inter from Google Fonts and Font Awesome icons.
-- **Hosting**: GitHub Pages for deployment.
+In an era of data breaches, trusting an online tool with your security credentials is hard. Here is why PassG is different:
 
-## Getting Started
+1.  **100% Client-Side Execution**: All logic runs locally in your browser. There are **no server calls** to generate passwords. You can even disconnect your internet and use it offline.
+2.  **Cryptographically Secure**: We do not use `Math.random()`. PassG utilizes the browser's `crypto.getRandomValues()` API, which provides a Cryptographically Secure Pseudo-Random Number Generator (CSPRNG) suitable for security-critical applications.
+3.  **Open Source**: The code is transparent. You can verify exactly how your passwords are generated. We encourage security professionals to audit our code.
+4.  **No Tracking**: We do not use analytics, cookies, or third-party trackers.
 
-### Prerequisites
+---
 
-- A modern web browser (Chrome, Firefox, Safari, Edge).
-- No server required; runs entirely in the browser.
+## 🚀 Features & The "Why" Behind Them
+
+### 1. Password Generator
+
+_Why it's better:_ Most generators just pick random characters. PassG ensures mathematical complexity.
+
+- **Basic Mode**: Generates standard secure passwords (e.g., `aB3$kL9#`).
+  - _Smart Feature_: Automatically excludes "lookalike" characters (like `1`, `l`, `I`, `0`, `O`) to prevent ambiguity when reading passwords.
+- **Advanced Mode (Universal)**: Designed for extreme security requirements.
+  - _Universal Coverage_: Includes characters from extended Unicode ranges (Latin-1, Greek, Cyrillic, Math symbols).
+  - _Guaranteed Complexity_: Algorithms ensure at least one character from every required set (Lower, Upper, Number, Symbol) is present.
+  - _Fisher-Yates Shuffle_: Uses the industry-standard shuffling algorithm to ensure unbiased character distribution.
+
+### 2. Passphrase Generator
+
+_Why it's better:_ Based on the [XKCD 936](https://xkcd.com/936/) philosophy—passwords should be easy for humans to remember but hard for computers to guess.
+
+- **EFF Wordlists**: Uses the Electronic Frontier Foundation's large wordlist for high entropy.
+- **Entropic Shuffle**: We implemented a custom `entropicShuffle` algorithm that combines Fisher-Yates with prime number offsets. This ensures that even if the underlying random number generator had a bias, the shuffling logic introduces an additional layer of unpredictability.
+- **Advanced Options**: Adds capitalization and random number/symbol separators between words (e.g., `Correct4$Horse9#Battery`) to exponentially increase the search space for brute-force attacks.
+
+### 3. Username Generator
+
+_Why it's better:_ Finding a unique username that is safe to use is challenging.
+
+- **Three Modes**:
+  - **Random**: Adjective + Noun combinations (e.g., `NeonDragon`).
+  - **Professional**: Clean, business-ready formats (e.g., `John.Doe`).
+  - **Gamer**: Leetspeak and stylistic prefixes/suffixes (e.g., `xX_Viper_Xx`).
+- **OWASP-Compliant Sanitization**: When you provide a keyword, we sanitize it using OWASP (Open Web Application Security Project) best practices to prevent Injection or XSS attacks if the username is used in vulnerable systems.
+
+### 4. Privacy & Usability
+
+- **Private Mode**: A toggle that disables local history storage. When on, nothing is saved to your browser's LocalStorage.
+- **Entropy Meter**: Real-time feedback on the mathematical strength of your password (measured in bits of entropy).
+- **PWA Support**: Install PassG as a native app on your desktop or mobile. It works offline!
+
+---
+
+## 🛠️ Technical Deep Dive
+
+For the cybersecurity analysts and developers:
+
+- **Entropy Calculation**: We calculate entropy $E = L \times \log_2(R)$, where $L$ is length and $R$ is the pool size. We also apply penalties for repeated characters to give a realistic strength estimate.
+- **Sanitization**: User inputs for usernames are stripped of dangerous characters using regex allowlists (`/[^a-z0-9]/g`), ensuring no malicious scripts can be injected.
+- **Memory Safety**: We use `const` and block scoping to minimize the lifespan of sensitive variables in memory, though browser garbage collection is ultimately managed by the JS engine.
+- **Content Security Policy**: A strict CSP is implemented to prevent XSS attacks and ensure only trusted resources are loaded.
+
+---
+
+## 🤝 Contributing
+
+This project is **Open Source** and belongs to the community. We believe that security tools should be accessible and improvable by everyone.
+
+**How you can help:**
+
+1.  **Fork the Repository**: Create your own version and experiment.
+2.  **Request Features**: Have an idea for a new generator mode? Open an issue!
+3.  **Report Bugs**: Found a security flaw? Let us know immediately.
+4.  **Submit PRs**: Improve the code, add translations, or fix typos.
 
 ### Running Locally
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/tusharbasak97/passG.git
-   cd passG
-   ```
-
-2. Open `index.html` in your browser:
-
-   - Double-click the file or use a local server (e.g., via VS Code Live Server extension).
-
-3. The app will load and function offline once cached.
-
-### Deployment
-
-The app is deployed on GitHub Pages. To deploy your own version:
-
-1. Fork the repository.
-2. Enable GitHub Pages in the repository settings (under "Pages", select "Deploy from a branch" and choose `main`).
-3. Push changes; the site will update automatically.
-
-## Usage
-
-1. **Generate Passwords**: Click "Generate" or press Alt+G. Adjust length with the slider.
-2. **Advanced Mode**: Toggle for unique character constraints and longer ranges.
-3. **Copy Password**: Click the copy button or press Alt+C.
-4. **View History**: Scroll through past generations in the history section.
-5. **Clear History**: Use the "Clear History" button to reset.
-6. **Bookmark**: Click the bookmark icon or press Ctrl+D.
-
-## Project Structure
-
-```
-passG/
-├── index.html          # Main HTML file
-├── styles.css          # Stylesheet
-├── script.js           # JavaScript logic
-├── assets/             # Static assets
-│   ├── apple-touch-icon.png
-│   ├── favicon-16x16.png
-│   ├── favicon-32x32.png
-│   ├── site.webmanifest # PWA manifest
-│   └── logo.png        # (If applicable)
-├── robots.txt          # SEO crawler instructions
-├── sitemap.xml         # SEO sitemap
-└── README.md           # This file
+```bash
+git clone https://github.com/tusharbasak97/passG.git
+cd passG
+# Open index.html in your browser. No server needed!
 ```
 
-## Contributing
+---
 
-Contributions are welcome! Please fork the repo and submit a pull request. For major changes, open an issue first to discuss.
-
-## License
+## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Author
+---
+
+## 👤 Author
 
 **Tushar Basak** - Cybersecurity Analyst
 
-- Portfolio: [bit.ly/m/DataBasak](https://bit.ly/m/DataBasak)
-- GitHub: [tusharbasak97](https://github.com/tusharbasak97)
+- **Portfolio**: [bit.ly/m/DataBasak](https://bit.ly/m/DataBasak)
+- **GitHub**: [tusharbasak97](https://github.com/tusharbasak97)
 
-## Acknowledgments
+---
 
-- Inspired by the need for stronger online security.
+_Stay Secure. Generate Responsibly._
+
 - Icons from Font Awesome.
 - Fonts from Google Fonts.

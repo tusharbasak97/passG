@@ -1,23 +1,64 @@
 {
-  "name": "PassG — Quantum Password Generator",
+  "name": "PassG — Secure Password Generator",
   "short_name": "PassG",
-  "description": "Generate quantum-grade, unique passwords by Cybersecurity Analyst Tushar Basak.",
-  "start_url": ".",
-  "scope": ".",
+  "description": "Generate cryptographically secure passwords, passphrases, and usernames. 100% offline. Zero tracking.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#050b18",
   "theme_color": "#8e68ff",
+  "categories": ["security", "utilities", "productivity"],
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/assets/images/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/assets/images/screenshot-narrow.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Generate Password",
+      "short_name": "Password",
+      "description": "Generate a secure password",
+      "url": "/?type=password",
+      "icons": [{ "src": "/assets/images/favicon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Generate Passphrase",
+      "short_name": "Passphrase",
+      "description": "Generate a memorable passphrase",
+      "url": "/?type=passphrase",
+      "icons": [{ "src": "/assets/images/favicon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Generate Username",
+      "short_name": "Username",
+      "description": "Generate a unique username",
+      "url": "/?type=username",
+      "icons": [{ "src": "/assets/images/favicon-96x96.png", "sizes": "96x96" }]
+    }
+  ],
   "icons": [
     {
       "src": "/assets/images/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/assets/images/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
