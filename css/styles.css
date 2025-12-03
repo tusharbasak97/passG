@@ -45,6 +45,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 .list li {
   display: flex;
   justify-content: space-between;
@@ -811,6 +815,10 @@ input[type="range"]::-moz-range-thumb:active {
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--color-accent) transparent;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+  transform: translateZ(0);
 }
 
 .card.history .list {
@@ -821,6 +829,7 @@ input[type="range"]::-moz-range-thumb:active {
   gap: var(--history-row-gap);
   margin-top: var(--gap-sm);
   padding-top: 0.25rem;
+  padding-right: 0.5rem;
 }
 
 .list::-webkit-scrollbar {
@@ -870,6 +879,9 @@ input[type="range"]::-moz-range-thumb:active {
   font-size: 0.875rem;
   transition: all 0.2s ease;
   position: relative;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .list li > div:last-child {

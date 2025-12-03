@@ -449,6 +449,11 @@ function addHistory(entry) {
   while (hist.length > 200) hist.pop();
   saveJSON(LS_HISTORY, hist);
   renderHistory();
+
+  // Scroll to top to show the newest item
+  if (historyList) {
+    historyList.scrollTop = 0;
+  }
 }
 
 function renderHistory() {
