@@ -937,21 +937,17 @@ input[type="range"]::-moz-range-thumb:active {
 .footer {
   text-align: center;
   color: var(--color-muted);
-  font-size: 0.875rem;
+  font-size: clamp(0.65rem, 1.8vw, 0.875rem);
   margin-top: auto;
   flex-shrink: 0;
   padding-top: var(--gap-md);
-}
-
-@media (max-width: 48rem) {
-  .footer {
-    font-size: 0.7rem;
-    padding-top: 0.5rem;
-  }
+  white-space: nowrap;
 }
 
 .footer p {
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer a {

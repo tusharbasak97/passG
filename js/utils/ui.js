@@ -10,6 +10,9 @@ export function announce(message) {
 }
 
 export function flashToast(msg) {
+  // Only show toast on desktop (768px and above)
+  if (window.innerWidth < 768) return;
+  
   const el = document.createElement("div");
   el.textContent = msg;
   el.style.position = "fixed";
