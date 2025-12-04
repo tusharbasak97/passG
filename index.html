@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self';"
     />
     <meta
       name="description"
@@ -44,8 +44,8 @@
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+      integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
@@ -371,33 +371,5 @@
     ></div>
 
     <script type="module" src="js/main.js"></script>
-    <script>
-      // Register Service Worker
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/js/sw.js")
-            .then((registration) => {})
-            .catch((err) => {});
-        });
-      }
-
-      // Handle URL parameters for app shortcuts
-      const urlParams = new URLSearchParams(window.location.search);
-      const type = urlParams.get("type");
-      if (type && ["password", "passphrase", "username"].includes(type)) {
-        window.addEventListener("load", () => {
-          const dropdown = document.getElementById("generatorType");
-          if (dropdown) {
-            dropdown.value = type;
-            dropdown.dispatchEvent(new Event("change"));
-          }
-        });
-      }
-
-      // Offline detection
-      window.addEventListener("online", () => {});
-      window.addEventListener("offline", () => {});
-    </script>
   </body>
 </html>

@@ -126,7 +126,15 @@ async function init() {
   switchGenerator(currentGeneratorType);
 
   // Load wordlist in background
-  requestIdleCallback(() => loadWordlist(), { timeout: 2000 });
+  requestIdleCallback(
+    async () => {
+      if (!passphraseGenerator) {
+        passphraseGenerator = await import("./generators/passphrase.js");
+      }
+      passphraseGenerator.loadWordlist();
+    },
+    { timeout: 2000 }
+  );
 
   // Render history
   requestIdleCallback(() => renderHistory(), { timeout: 1000 });
@@ -137,6 +145,38 @@ async function init() {
   // Set current year
   const yearEl = document.getElementById("current-year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // Suppress browser's native install prompt
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+  });
+
+  // Register Service Worker
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/js/sw.js")
+        .then((registration) => {})
+        .catch((err) => {});
+    });
+  }
+
+  // Handle URL parameters for app shortcuts
+  const urlParams = new URLSearchParams(window.location.search);
+  const type = urlParams.get("type");
+  if (type && ["password", "passphrase", "username"].includes(type)) {
+    window.addEventListener("load", () => {
+      const dropdown = document.getElementById("generatorType");
+      if (dropdown) {
+        dropdown.value = type;
+        dropdown.dispatchEvent(new Event("change"));
+      }
+    });
+  }
+
+  // Offline detection
+  window.addEventListener("online", () => {});
+  window.addEventListener("offline", () => {});
 }
 
 function setupEventListeners() {

@@ -402,6 +402,12 @@ body::-webkit-scrollbar,
   color: var(--color-text);
 }
 
+@media (max-width: 48rem) {
+  .generator-label {
+    display: none;
+  }
+}
+
 /* Custom Dropdown */
 .custom-dropdown {
   position: relative;
@@ -935,6 +941,13 @@ input[type="range"]::-moz-range-thumb:active {
   margin-top: auto;
   flex-shrink: 0;
   padding-top: var(--gap-md);
+}
+
+@media (max-width: 48rem) {
+  .footer {
+    font-size: 0.7rem;
+    padding-top: 0.5rem;
+  }
 }
 
 .footer p {
