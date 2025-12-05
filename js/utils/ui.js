@@ -1,6 +1,8 @@
 /* UI utility functions */
 
 export function announce(message) {
+  // Silence announcements on mobile/tablet to avoid visible status flashes
+  if (window.innerWidth < 1024) return;
   const liveStatusEl = document.getElementById("liveStatus");
   if (!liveStatusEl) return;
   liveStatusEl.textContent = "";
@@ -10,36 +12,21 @@ export function announce(message) {
 }
 
 export function flashToast(msg) {
-  // Only show toast on desktop (768px and above)
-  if (window.innerWidth < 768) return;
-  
+  // Only show toast on desktop (1024px and above)
+  if (window.innerWidth < 1024) return;
+
   const el = document.createElement("div");
   el.textContent = msg;
-  el.style.position = "fixed";
-  el.style.right = "20px";
-  el.style.bottom = "20px";
-  el.style.padding = "12px 18px";
-  el.style.background =
-    "linear-gradient(135deg, hsl(262 82% 59% / 0.95), hsl(189 95% 42% / 0.95))";
-  el.style.backdropFilter = "blur(10px)";
-  el.style.borderRadius = "12px";
-  el.style.border = "1px solid hsl(262 82% 59% / 0.5)";
-  el.style.color = "hsl(0, 0%, 100%)";
-  el.style.fontWeight = "600";
-  el.style.fontSize = "0.9rem";
-  el.style.boxShadow =
-    "0 8px 24px hsl(262 80% 60% / 0.4), 0 0 20px hsl(262 80% 60% / 0.3)";
-  el.style.transition = "opacity 0.3s ease-out";
-  el.style.zIndex = "9999";
+  el.className = "toast-notification";
   document.body.appendChild(el);
-  setTimeout(() => (el.style.opacity = "0"), 1400);
+  setTimeout(() => el.classList.add("fade-out"), 1400);
   setTimeout(() => el.remove(), 2000);
 }
 
 export function copyToClipboard(text) {
   return navigator.clipboard.writeText(text).then(
     () => {
-      if (window.innerWidth >= 768) {
+      if (window.innerWidth >= 1024) {
         flashToast("Copied to clipboard");
       }
       announce("Copied to clipboard");
@@ -56,55 +43,29 @@ export function copyToClipboard(text) {
 export function showConfirmDialog(message) {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
-    overlay.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: hsla(0, 0%, 0%, 0.70); backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 10000; animation: fadeIn 0.2s ease-out;
-    `;
+    overlay.className = "confirm-overlay";
 
     const dialog = document.createElement("div");
-    dialog.style.cssText = `
-      background: linear-gradient(180deg, hsl(218 40% 16% / 0.95), hsl(218 35% 10% / 0.98));
-      border-radius: 16px; padding: 2rem; max-width: 400px; width: 90%;
-      border: 1px solid hsl(262 82% 59% / 0.3);
-      box-shadow: 0 20px 60px hsla(0, 0%, 0%, 0.50), 0 0 40px hsl(262 80% 60% / 0.2);
-      animation: slideUp 0.3s ease-out;
-    `;
+    dialog.className = "confirm-dialog";
 
     const msgEl = document.createElement("p");
     msgEl.textContent = message;
-    msgEl.style.cssText = `
-      color: hsl(215 33% 92%); font-size: 1.1rem; margin-bottom: 1.5rem;
-      text-align: center; line-height: 1.5;
-    `;
+    msgEl.className = "confirm-message";
 
     const btnContainer = document.createElement("div");
-    btnContainer.style.cssText =
-      "display: flex; gap: 1rem; justify-content: center;";
+    btnContainer.className = "confirm-actions";
 
     const cancelBtn = document.createElement("button");
     cancelBtn.textContent = "Cancel";
-    cancelBtn.style.cssText = `
-      padding: 0.75rem 1.5rem; border-radius: 8px;
-      border: 1px solid hsl(215 30% 40% / 0.3); background: hsl(215 40% 20% / 0.5);
-      color: hsl(215 33% 92%); font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; font-family: inherit;
-    `;
+    cancelBtn.className = "confirm-btn-cancel";
 
     const confirmBtn = document.createElement("button");
     confirmBtn.textContent = "Confirm";
-    confirmBtn.style.cssText = `
-      padding: 0.75rem 1.5rem; border-radius: 8px; border: none;
-      background: linear-gradient(135deg, hsl(262 82% 59%), hsl(189 95% 42%));
-      color: white; font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: all 0.2s;
-      box-shadow: 0 4px 12px hsl(262 80% 60% / 0.3); font-family: inherit;
-    `;
+    confirmBtn.className = "confirm-btn-confirm";
 
     const closeDialog = (result) => {
-      overlay.style.animation = "fadeOut 0.2s ease-out";
-      dialog.style.animation = "slideDown 0.2s ease-out";
+      overlay.classList.add("fade-out");
+      dialog.classList.add("slide-down");
       setTimeout(() => {
         document.body.removeChild(overlay);
         resolve(result);

@@ -1,4 +1,4 @@
-/* Service Worker for PassG PWA */
+/* Service Worker for PassG PWA - Updated 2025-12-05 */
 const CACHE_VERSION = "passg-v1.0.0";
 const CACHE_URLS = [
   "/",

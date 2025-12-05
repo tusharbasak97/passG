@@ -13,7 +13,7 @@
     />
     <meta
       name="keywords"
-      content="password generator,strong password,super strong,create strong,complex password,strong password generator,super strong password,generate strong password,password generator digit,complex password generator,random password,strong passwords,store passwords,random password generator,weak weak good,good strong strong,paste password press,clipboard paste password,Tushar Basak,explore products,privileged access,customer experience,back customer,userfriendly interface simplifies,services provide challenges,customer experience customer,senior iam manager,access management tasks,password generate,lowercase letters,secure passwords,lastpass password generator,resource center support,generator creates random,generate strong passwords,store passwords digital,password manager,password managers,passwords password,long random unique,strong passwords cisa,couldnt log email,emma alarmed received,alert bank confirming"
+      content="password generator,strong password,super strong,create strong,complex password,strong password generator,super strong password,generate strong password,password generator digit,complex password generator,random password,strong passwords,store passwords,random password generator,weak weak good,good strong strong,paste password press,clipboard paste password,Tushar Basak,Tushar Basak Cybersecurity,Tushar Basak Portfolio,explore products,privileged access,customer experience,back customer,userfriendly interface simplifies,services provide challenges,customer experience customer,senior iam manager,access management tasks,password generate,lowercase letters,secure passwords,lastpass password generator,resource center support,generator creates random,generate strong passwords,store passwords digital,password manager,password managers,passwords password,long random unique,strong passwords cisa,couldnt log email,emma alarmed received,alert bank confirming"
     />
     <meta name="theme-color" content="#050b18" />
     <link rel="canonical" href="https://pass-g-kohl.vercel.app/" />
@@ -53,7 +53,7 @@
   </head>
   <body>
     <!-- SVG definitions for checkbox symbols -->
-    <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+    <svg xmlns="http://www.w3.org/2000/svg" class="hidden">
       <symbol id="checkmark-adv" viewBox="0 0 24 24">
         <path
           stroke-linecap="round"
@@ -67,14 +67,9 @@
     <main class="app" role="main">
       <header class="hero">
         <h1>PassG</h1>
-        <p class="lead">
-          Secure Passwords. Smart Passphrases. Unique Usernames.
-        </p>
+        <p class="lead">Instant strong passwords, phrases, and usernames.</p>
         <div class="hero-badges">
-          <div
-            class="secured-badge padd-15"
-            aria-label="Secured by Tushar Basak"
-          >
+          <div class="secured-badge" aria-label="Secured by Tushar Basak">
             <i class="fas fa-shield-halved" aria-hidden="true"></i>
             <span>Secured</span>
           </div>
@@ -145,10 +140,9 @@
             </div>
             <select
               id="generatorType"
-              class="sr-only"
+              class="sr-only hidden"
               aria-hidden="true"
               tabindex="-1"
-              style="display: none;"
             >
               <option value="password">Password</option>
               <option value="passphrase">Passphrase</option>
@@ -210,7 +204,7 @@
           </div>
 
           <!-- Passphrase Controls -->
-          <div id="passphraseControls" class="controls" style="display: none">
+          <div id="passphraseControls" class="controls hidden">
             <label class="range-label" for="wordCount"
               >Word Count: <span id="wordCountVal">3</span></label
             >
@@ -245,7 +239,7 @@
           </div>
 
           <!-- Username Controls -->
-          <div id="usernameControls" class="controls" style="display: none">
+          <div id="usernameControls" class="controls hidden">
             <div
               class="username-styles"
               role="group"
@@ -324,7 +318,7 @@
           <div class="strength-container">
             <div class="meter-row">
               <div id="strengthMeter" class="meter" aria-hidden="true">
-                <div class="meter-fill" style="width: 0%"></div>
+                <div class="meter-fill"></div>
               </div>
               <div id="strengthText" class="strength-text">Entropy: — bits</div>
             </div>

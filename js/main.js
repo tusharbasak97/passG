@@ -3,8 +3,14 @@
 let passwordGenerator = null;
 let passphraseGenerator = null;
 let usernameGenerator = null;
+let deferredInstallPrompt = null;
 
-import { announce, copyToClipboard, showConfirmDialog } from "./utils/ui.js";
+import {
+  announce,
+  copyToClipboard,
+  showConfirmDialog,
+  flashToast,
+} from "./utils/ui.js";
 import {
   loadJSON,
   saveJSON,
@@ -31,6 +37,8 @@ const LS_HISTORY = "passg_history_v1";
 const MODE_KEY = "passg_mode_pref_v1";
 const PRIVATE_MODE_KEY = "passg_private_mode_v1";
 const GENERATOR_TYPE_KEY = "passg_generator_type_v1";
+const INSTALL_PROMPT_LAST_KEY = "passg_install_prompt_last_v1";
+const INSTALL_PROMPT_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000; // ~30 days
 const LENGTH_SETTINGS = {
   basic: { min: 10, max: 20, default: 12, key: "passg_len_basic_v1" },
   advanced: { min: 8, max: 18, default: 10, key: "passg_len_advanced_v1" },
@@ -149,6 +157,8 @@ async function init() {
   // Suppress browser's native install prompt
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
+    deferredInstallPrompt = e;
+    requestIdleCallback(() => maybeShowInstallPrompt(), { timeout: 1500 });
   });
 
   // Register Service Worker
@@ -177,6 +187,9 @@ async function init() {
   // Offline detection
   window.addEventListener("online", () => {});
   window.addEventListener("offline", () => {});
+
+  // Offer install prompt if eligible (in case beforeinstallprompt fired prior to init)
+  requestIdleCallback(() => maybeShowInstallPrompt(), { timeout: 2000 });
 }
 
 function setupEventListeners() {
@@ -261,11 +274,13 @@ function setupEventListeners() {
       setItem(PRIVATE_MODE_KEY, privateModeEl.checked ? "1" : "0");
       updateClearHistoryButton();
       renderHistory();
-      announce(
-        privateModeEl.checked
-          ? "Private session enabled. History paused."
-          : "Private session disabled. History will resume."
-      );
+      if (window.innerWidth >= 1024) {
+        announce(
+          privateModeEl.checked
+            ? "Private session enabled. History paused."
+            : "Private session disabled. History will resume."
+        );
+      }
     });
   }
 
@@ -327,6 +342,72 @@ function ensureUsernameSelection(target) {
   return true;
 }
 
+function shouldShowInstallPrompt() {
+  if (!deferredInstallPrompt) return false;
+  const last = parseInt(getItem(INSTALL_PROMPT_LAST_KEY, "0"), 10) || 0;
+  return Date.now() - last > INSTALL_PROMPT_COOLDOWN_MS;
+}
+
+function maybeShowInstallPrompt() {
+  if (!deferredInstallPrompt) return;
+
+  // Check cooldown
+  const lastPrompt = parseInt(getItem(INSTALL_PROMPT_LAST_KEY, "0"), 10);
+  const now = Date.now();
+  if (now - lastPrompt < INSTALL_PROMPT_COOLDOWN_MS) {
+    return;
+  }
+
+  // Only show on desktop (width >= 1024px)
+  if (window.innerWidth < 1024) return;
+
+  // Create custom install UI
+  const installDiv = document.createElement("div");
+  installDiv.className = "install-prompt";
+
+  installDiv.innerHTML = `
+    <div class="install-header">
+      <h3 class="install-title">Install App</h3>
+      <button id="closeInstall" class="install-close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <p class="install-text">
+      Install PassG for offline access.
+    </p>
+    <button id="installBtn" class="install-btn">Install</button>
+  `;
+
+  document.body.appendChild(installDiv);
+
+  // Auto-close after 5 seconds
+  const autoCloseTimer = setTimeout(() => {
+    closeInstallPrompt();
+  }, 5000);
+
+  function closeInstallPrompt() {
+    installDiv.classList.add("closing");
+    setTimeout(() => installDiv.remove(), 300);
+  }
+
+  document.getElementById("closeInstall").addEventListener("click", () => {
+    clearTimeout(autoCloseTimer);
+    closeInstallPrompt();
+  });
+
+  document.getElementById("installBtn").addEventListener("click", async () => {
+    clearTimeout(autoCloseTimer);
+    closeInstallPrompt();
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === "accepted") {
+      deferredInstallPrompt = null;
+    }
+    // Set cooldown regardless of outcome
+    setItem(INSTALL_PROMPT_LAST_KEY, Date.now().toString());
+  });
+}
+
 function createHistoryTypeBadge(type = "password") {
   const safeType = HISTORY_TYPE_LABELS[type] ? type : "password";
   const badge = document.createElement("span");
@@ -335,31 +416,81 @@ function createHistoryTypeBadge(type = "password") {
   return badge;
 }
 
+function showInstallDialog(message, { autoCloseMs = null } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+
+    const dialog = document.createElement("div");
+    dialog.className = "install-dialog-box";
+
+    const msgEl = document.createElement("p");
+    msgEl.textContent = message;
+    msgEl.className = "install-dialog-message";
+
+    const actions = document.createElement("div");
+    actions.className = "install-dialog-actions";
+
+    const btnLater = document.createElement("button");
+    btnLater.textContent = "Maybe later";
+    btnLater.className = "install-dialog-btn-later";
+
+    const btnInstall = document.createElement("button");
+    btnInstall.textContent = "Install";
+    btnInstall.className = "install-dialog-btn-install";
+
+    let timer = null;
+    const cleanup = (result) => {
+      if (timer) clearTimeout(timer);
+      overlay.remove();
+      resolve(result);
+    };
+
+    btnLater.addEventListener("click", () => cleanup(false));
+    btnInstall.addEventListener("click", () => cleanup(true));
+
+    if (autoCloseMs) {
+      timer = setTimeout(() => cleanup(false), autoCloseMs);
+    }
+
+    actions.appendChild(btnLater);
+    actions.appendChild(btnInstall);
+    dialog.appendChild(msgEl);
+    dialog.appendChild(actions);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+  });
+}
+
 function switchGenerator(type) {
   currentGeneratorType = type;
   setItem(GENERATOR_TYPE_KEY, type);
 
   // Hide all control panels
-  if (passwordControls) passwordControls.style.display = "none";
-  if (passphraseControls) passphraseControls.style.display = "none";
-  if (usernameControls) usernameControls.style.display = "none";
+  if (passwordControls) passwordControls.classList.add("hidden");
+  if (passphraseControls) passphraseControls.classList.add("hidden");
+  if (usernameControls) usernameControls.classList.add("hidden");
 
   // Show entropy meter only for password and passphrase
   const strengthContainer = document.querySelector(".strength-container");
   if (strengthContainer) {
-    strengthContainer.style.display = type === "password" ? "block" : "none";
+    if (type === "password") {
+      strengthContainer.classList.remove("hidden");
+    } else {
+      strengthContainer.classList.add("hidden");
+    }
   }
 
   // Show appropriate control panel
   switch (type) {
     case "password":
-      if (passwordControls) passwordControls.style.display = "block";
+      if (passwordControls) passwordControls.classList.remove("hidden");
       break;
     case "passphrase":
-      if (passphraseControls) passphraseControls.style.display = "block";
+      if (passphraseControls) passphraseControls.classList.remove("hidden");
       break;
     case "username":
-      if (usernameControls) usernameControls.style.display = "block";
+      if (usernameControls) usernameControls.classList.remove("hidden");
       break;
   }
 }
@@ -425,7 +556,9 @@ async function doGenerate() {
       });
     }
   } catch (error) {
-    announce("Generation failed. Please try again.");
+    if (window.innerWidth >= 1024) {
+      announce("Generation failed. Please try again.");
+    }
   }
 }
 
@@ -433,7 +566,7 @@ function updateStrength({ entropy, label }) {
   if (!strengthMeter || !strengthText) return;
 
   const pct = Math.min(100, Math.round((entropy / 128) * 100));
-  strengthMeter.style.width = pct + "%";
+  strengthMeter.style.setProperty("--width", pct + "%");
   strengthText.textContent = `Entropy: ${entropy} bits — ${label}`;
 }
 
@@ -472,12 +605,8 @@ function updateClearHistoryButton() {
 
   if (isPrivateMode()) {
     clearHistoryBtn.disabled = true;
-    clearHistoryBtn.style.opacity = "0.5";
-    clearHistoryBtn.style.cursor = "not-allowed";
   } else {
     clearHistoryBtn.disabled = false;
-    clearHistoryBtn.style.opacity = "";
-    clearHistoryBtn.style.cursor = "";
   }
 }
 
@@ -577,14 +706,17 @@ function renderHistory() {
 }
 
 function clearHistory() {
-  if (isPrivateMode()) return;
+  if (privateModeEl && privateModeEl.checked) return;
 
-  showConfirmDialog("Are you sure you want to clear all saved history?").then(
+  showConfirmDialog("Are you sure you want to clear your history?").then(
     (confirmed) => {
       if (confirmed) {
         saveJSON(LS_HISTORY, []);
         renderHistory();
-        announce("History cleared");
+        if (window.innerWidth >= 1024) {
+          flashToast("History cleared");
+          announce("History cleared");
+        }
       }
     }
   );
