@@ -12,9 +12,6 @@ export function announce(message) {
 }
 
 export function flashToast(msg) {
-  // Only show toast on desktop (1024px and above)
-  if (window.innerWidth < 1024) return;
-
   const el = document.createElement("div");
   el.textContent = msg;
   el.className = "toast-notification";

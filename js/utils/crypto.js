@@ -26,8 +26,11 @@ export function randFloat() {
   return buf[0] / 0x100000000;
 }
 
-export function pick(str) {
-  return str.charAt(randInt(str.length));
+export function pick(collection) {
+  if (!collection || collection.length === 0) return "";
+  const items =
+    typeof collection === "string" ? Array.from(collection) : collection;
+  return items[randInt(items.length)];
 }
 
 export function shuffle(array) {

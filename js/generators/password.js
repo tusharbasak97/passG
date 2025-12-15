@@ -21,95 +21,94 @@ export function generateBasic(len) {
   return shuffled.slice(0, len).join("");
 }
 
-export function generateUniversal(len) {
-  // Advanced mode: ensures at least 1 lowercase, 1 uppercase, 1 number, 1 symbol
+export function generateUniversal(len, options = {}) {
+  const settings = {
+    lowercase: true,
+    uppercase: true,
+    numbers: true,
+    symbols: true,
+    extendedSymbols: true,
+    nonLatin: true,
+    emoji: true,
+    excludeSymbols: "",
+    ...options,
+  };
+
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
   const uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const numbers = "0123456789";
   const symbols = "!@#$%^&*+-_=?:|";
+  const extendedSymbols = "~`^[]{}()<>/\\;.,'\"";
 
-  // Extended ranges for diversity
-  const ranges = [
-    { range: [0x0021, 0x007e], group: "ascii" },
-    { range: [0x00a1, 0x00ff], group: "latin1" },
-    { range: [0x0100, 0x017f], group: "latinext" },
-    { range: [0x0370, 0x03ff], group: "greek" },
-    { range: [0x0400, 0x04ff], group: "cyrillic" },
-    { range: [0x0590, 0x05ff], group: "hebrew" },
-    { range: [0x0600, 0x06ff], group: "arabic" },
-    { range: [0x0900, 0x097f], group: "devanagari" },
-    { range: [0x0e00, 0x0e7f], group: "thai" },
-    { range: [0x1100, 0x11ff], group: "hangul" },
-    { range: [0x2200, 0x22ff], group: "math" },
-    { range: [0x3040, 0x309f], group: "hiragana" },
-    { range: [0x30a0, 0x30ff], group: "katakana" },
-    { range: [0x4e00, 0x9fbf], group: "cjk" },
-    { range: [0x1f300, 0x1f64f], group: "emoji" },
+  const accentRanges = [
+    [0x00c0, 0x00ff],
+    [0x0100, 0x017f],
+    [0x0180, 0x024f],
+    [0x0370, 0x03ff],
+    [0x0400, 0x04ff],
   ];
 
-  const usedGroups = new Set();
-  const usedChars = new Set();
+  const emojiChars = "😀😁😂🤣😅😊😍🤩🥳😎🛡️✨🔥⭐⚡🌟🚀🎯🔒🔑🧠🛰️🧮🧭🧲📡🔭";
 
-  // Generate diverse password
-  let chars = [];
-  for (let i = 0; i < len; i++) {
-    let attempts = 0;
-    let char = "";
-    let selectedRange;
+  const excludeSet = new Set((settings.excludeSymbols || "").split(""));
 
-    while (attempts < 100) {
-      selectedRange = ranges[randInt(ranges.length)];
+  const stripExcluded = (chars) => {
+    if (!chars) return "";
+    return chars
+      .split("")
+      .filter((ch) => !excludeSet.has(ch))
+      .join("");
+  };
 
-      if (
-        usedGroups.has(selectedRange.group) &&
-        !["ascii", "latin1", "latinext", "math"].includes(selectedRange.group)
-      ) {
-        attempts++;
-        continue;
-      }
+  const filteredSymbols = stripExcluded(symbols);
+  const filteredExtendedSymbols = stripExcluded(extendedSymbols);
 
-      const r = selectedRange.range;
-      char = String.fromCodePoint(randInt(r[1] - r[0] + 1) + r[0]);
+  const pickers = [];
+  const required = [];
 
-      if (usedChars.has(char)) {
-        attempts++;
-        continue;
-      }
+  const addCharGroup = (enabled, chars, isRequired = false) => {
+    if (!enabled || !chars || !chars.length) return;
+    const fn = () => pick(chars);
+    pickers.push(fn);
+    if (isRequired) required.push(fn);
+  };
 
-      break;
-    }
+  const addRangeGroup = (enabled, ranges, isRequired = false) => {
+    if (!enabled) return;
+    const fn = () => {
+      const r = ranges[randInt(ranges.length)];
+      return String.fromCodePoint(randInt(r[1] - r[0] + 1) + r[0]);
+    };
+    pickers.push(fn);
+    if (isRequired) required.push(fn);
+  };
 
-    if (attempts >= 100) {
-      const fallbackRange = ranges[0].range;
-      for (let fb = 0; fb < 200; fb++) {
-        char = String.fromCodePoint(
-          randInt(fallbackRange[1] - fallbackRange[0] + 1) + fallbackRange[0]
-        );
-        if (!usedChars.has(char)) break;
-      }
-    }
+  addCharGroup(settings.lowercase, lowercase, true);
+  addCharGroup(settings.uppercase, uppercase, true);
+  addCharGroup(settings.numbers, numbers, true);
+  addCharGroup(settings.symbols, filteredSymbols, true);
+  addCharGroup(settings.extendedSymbols, filteredExtendedSymbols, true);
+  addRangeGroup(settings.nonLatin, accentRanges, true);
+  addCharGroup(settings.emoji, emojiChars, true);
 
-    chars.push(char);
-    usedChars.add(char);
-    usedGroups.add(selectedRange.group);
+  if (!pickers.length) {
+    const fallback = () => pick(lowercase + uppercase + numbers);
+    pickers.push(fallback);
+    required.push(fallback);
   }
 
-  // Ensure required character types
-  const hasLower = chars.some((c) => lowercase.includes(c));
-  const hasUpper = chars.some((c) => uppercase.includes(c));
-  const hasNumber = chars.some((c) => numbers.includes(c));
-  const hasSymbol = chars.some((c) => symbols.includes(c));
+  const password = [];
+  const requiredCount = Math.min(required.length, len);
 
-  const positions = shuffle(Array.from({ length: chars.length }, (_, i) => i));
-  let posIdx = 0;
+  for (let i = 0; i < requiredCount; i++) {
+    password.push(required[i]());
+  }
 
-  if (!hasLower) chars[positions[posIdx++]] = pick(lowercase);
-  if (!hasUpper) chars[positions[posIdx++]] = pick(uppercase);
-  if (!hasNumber) chars[positions[posIdx++]] = pick(numbers);
-  if (!hasSymbol) chars[positions[posIdx++]] = pick(symbols);
+  while (password.length < len) {
+    password.push(pickers[randInt(pickers.length)]());
+  }
 
-  // Final shuffle
-  return shuffle(chars).join("");
+  return shuffle(password).join("");
 }
 
 export function calculateEntropy(pwd) {

@@ -67,7 +67,9 @@
     <main class="app" role="main">
       <header class="hero">
         <h1>PassG</h1>
-        <p class="lead">Instant strong passwords, phrases, and usernames.</p>
+        <p class="lead">
+          Secure Passwords. Smart Passphrases. Unique Usernames.
+        </p>
         <div class="hero-badges">
           <div class="secured-badge" aria-label="Secured by Tushar Basak">
             <i class="fas fa-shield-halved" aria-hidden="true"></i>
@@ -191,15 +193,34 @@
                 <svg><use xlink:href="#checkmark-adv" /></svg>
                 <label for="advancedMode"> Advanced Mode </label>
               </div>
-              <button
-                id="generateBtn"
-                class="btn primary"
-                title="Generate (Alt+G)"
-                data-generate
-                type="button"
-              >
-                Generate
-              </button>
+              <div class="advanced-actions">
+                <button
+                  id="openAdvancedOptions"
+                  class="btn ghost desktop-options-btn"
+                  type="button"
+                  aria-haspopup="dialog"
+                >
+                  Options
+                </button>
+                <button
+                  id="openAdvancedOptionsMobile"
+                  class="btn ghost mobile-options-btn"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-label="Advanced Options"
+                >
+                  <i class="fas fa-cog"></i>
+                </button>
+                <button
+                  id="generateBtn"
+                  class="btn primary"
+                  title="Generate (Alt+G)"
+                  data-generate
+                  type="button"
+                >
+                  Generate
+                </button>
+              </div>
             </div>
           </div>
 
@@ -364,6 +385,85 @@
       aria-live="polite"
       aria-atomic="true"
     ></div>
+
+    <div
+      id="advancedOptionsOverlay"
+      class="overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="advancedOptionsTitle"
+      tabindex="-1"
+    >
+      <div class="overlay-panel" role="document">
+        <div class="overlay-header">
+          <h3 id="advancedOptionsTitle">Advanced password options</h3>
+          <button
+            type="button"
+            class="overlay-close"
+            id="advancedOptionsClose"
+            aria-label="Close advanced options"
+          >
+            ×
+          </button>
+        </div>
+        <p class="overlay-desc">
+          Pick which character sets to use when advanced mode is on. Disable any
+          sets that certain sites reject.
+        </p>
+        <form id="advancedOptionsForm" class="advanced-options-grid">
+          <label class="adv-option">
+            <input type="checkbox" data-adv-option="symbols" checked />
+            <span class="option-title">Symbols (safe)</span>
+            <span class="option-hint">! @ # $ %</span>
+          </label>
+          <label class="adv-option">
+            <input type="checkbox" data-adv-option="extendedSymbols" checked />
+            <span class="option-title">Extended symbols</span>
+            <span class="option-hint"
+              >~ ` ^ [ ] { } ( ) &lt; &gt; / \ ; . , ' "</span
+            >
+          </label>
+          <label class="adv-option">
+            <input type="checkbox" data-adv-option="nonLatin" checked />
+            <span class="option-title">Accents & scripts</span>
+            <span class="option-hint">Greek, Cyrillic, etc.</span>
+          </label>
+          <label class="adv-option">
+            <input type="checkbox" data-adv-option="emoji" checked />
+            <span class="option-title">Emoji</span>
+            <span class="option-hint">🙂 🔒 ✨</span>
+          </label>
+        </form>
+        <div class="control-group">
+          <label class="control-label" for="advancedExcludeSymbols"
+            >Exclude these symbols (optional)</label
+          >
+          <input
+            id="advancedExcludeSymbols"
+            type="text"
+            class="text-input"
+            inputmode="text"
+            aria-label="Exclude symbols"
+            placeholder="e.g. @#$%|~"
+            maxlength="64"
+            pattern="[^a-zA-Z0-9]*"
+            title="Only symbols are allowed"
+          />
+          <small class="option-hint">
+            These characters will be removed from the symbol pools when
+            generating advanced passwords.
+          </small>
+        </div>
+        <div class="overlay-actions">
+          <button type="button" class="btn" id="advancedOptionsCancel">
+            Cancel
+          </button>
+          <button type="button" class="btn primary" id="advancedOptionsApply">
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script type="module" src="js/main.js"></script>
   </body>

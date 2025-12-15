@@ -47,10 +47,23 @@ const LENGTH_SETTINGS = {
 const PASSPHRASE_WORD_COUNT_KEY = "passg_passphrase_words_v1";
 const PASSPHRASE_ADVANCED_KEY = "passg_passphrase_adv_v1";
 const USERNAME_STYLE_KEY = "passg_username_styles_v1";
+const ADVANCED_OPTIONS_KEY = "passg_advanced_opts_v1";
+const DEFAULT_ADVANCED_OPTIONS = {
+  lowercase: true,
+  uppercase: true,
+  numbers: true,
+  symbols: true,
+  extendedSymbols: true,
+  nonLatin: true,
+  emoji: true,
+  excludeSymbols: "",
+};
 
 // State
 let currentGeneratorType = "password"; // password, passphrase, username
 let currentPasswordMode = "basic"; // basic, advanced
+let advancedOptions = { ...DEFAULT_ADVANCED_OPTIONS };
+let lastFocusedButton = null;
 
 // DOM Elements
 const generatorDropdown = document.getElementById("generatorType");
@@ -92,11 +105,28 @@ const usernameStyleInputs = document.querySelectorAll(
   "input[data-username-style]"
 );
 
+// Advanced options overlay
+const advancedOptionsBtn = document.getElementById("openAdvancedOptions");
+const advancedOptionsMobileBtn = document.getElementById(
+  "openAdvancedOptionsMobile"
+);
+const advancedOverlay = document.getElementById("advancedOptionsOverlay");
+const advancedForm = document.getElementById("advancedOptionsForm");
+const advancedApplyBtn = document.getElementById("advancedOptionsApply");
+const advancedCancelBtn = document.getElementById("advancedOptionsCancel");
+const advancedCloseBtn = document.getElementById("advancedOptionsClose");
+const advancedExcludeInput = document.getElementById("advancedExcludeSymbols");
+
 // Initialize
 async function init() {
   // Load preferences
   currentGeneratorType = getItem(GENERATOR_TYPE_KEY, "password");
   currentPasswordMode = getItem(MODE_KEY, "basic");
+  advancedOptions = loadAdvancedOptions();
+  syncAdvancedFormFromState();
+  if (advancedOverlay) {
+    advancedOverlay.setAttribute("aria-hidden", "true");
+  }
 
   if (generatorDropdown) {
     generatorDropdown.value = currentGeneratorType;
@@ -112,6 +142,7 @@ async function init() {
   if (advancedModeEl) {
     advancedModeEl.checked = currentPasswordMode === "advanced";
     applyLengthSettings(currentPasswordMode);
+    updateOptionsVisibility();
   }
 
   // Load passphrase settings
@@ -167,8 +198,31 @@ async function init() {
     window.addEventListener("load", () => {
       navigator.serviceWorker
         .register("/js/sw.js")
-        .then((registration) => {})
+        .then((registration) => {
+          // Check for updates
+          registration.addEventListener("updatefound", () => {
+            const newWorker = registration.installing;
+            newWorker.addEventListener("statechange", () => {
+              if (
+                newWorker.state === "installed" &&
+                navigator.serviceWorker.controller
+              ) {
+                // New update available
+                announce("Update available. Refreshing...");
+              }
+            });
+          });
+        })
         .catch((err) => {});
+
+      // Reload when new service worker takes control
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
     });
   }
 
@@ -216,7 +270,46 @@ function setupEventListeners() {
       currentPasswordMode = advancedModeEl.checked ? "advanced" : "basic";
       setItem(MODE_KEY, currentPasswordMode);
       applyLengthSettings(currentPasswordMode);
+      updateOptionsVisibility();
       doGenerate();
+    });
+  }
+
+  if (advancedOptionsBtn) {
+    advancedOptionsBtn.addEventListener("click", () => {
+      lastFocusedButton = advancedOptionsBtn;
+      openAdvancedOverlay();
+    });
+  }
+
+  if (advancedOptionsMobileBtn) {
+    advancedOptionsMobileBtn.addEventListener("click", () => {
+      lastFocusedButton = advancedOptionsMobileBtn;
+      openAdvancedOverlay();
+    });
+  }
+
+  if (advancedApplyBtn) {
+    advancedApplyBtn.addEventListener("click", () => {
+      applyAdvancedOptionsFromForm();
+    });
+  }
+
+  if (advancedCancelBtn) {
+    advancedCancelBtn.addEventListener("click", () => {
+      closeAdvancedOverlay();
+    });
+  }
+
+  if (advancedCloseBtn) {
+    advancedCloseBtn.addEventListener("click", () => {
+      closeAdvancedOverlay();
+    });
+  }
+
+  if (advancedOverlay) {
+    advancedOverlay.addEventListener("click", (e) => {
+      if (e.target === advancedOverlay) closeAdvancedOverlay();
     });
   }
 
@@ -237,6 +330,17 @@ function setupEventListeners() {
         passphraseAdvancedEl.checked ? "1" : "0"
       );
       doGenerate();
+    });
+  }
+
+  if (advancedExcludeInput) {
+    advancedExcludeInput.addEventListener("input", (e) => {
+      const val = e.target.value;
+      const sanitized = val.replace(/[a-zA-Z0-9]/g, "");
+      if (val !== sanitized) {
+        e.target.value = sanitized;
+        flashToast("Only symbols are allowed.");
+      }
     });
   }
 
@@ -287,6 +391,16 @@ function setupEventListeners() {
 
   // Keyboard shortcuts
   window.addEventListener("keydown", (e) => {
+    if (isAdvancedOverlayOpen() && e.key === "Escape") {
+      e.preventDefault();
+      closeAdvancedOverlay();
+      return;
+    }
+
+    if (isAdvancedOverlayOpen()) {
+      return;
+    }
+
     if (e.altKey && !e.shiftKey && e.code === "KeyG") {
       e.preventDefault();
       doGenerate();
@@ -341,6 +455,131 @@ function ensureUsernameSelection(target) {
     return false;
   }
   return true;
+}
+
+function normalizeAdvancedOptions(opts = {}) {
+  const normalized = { ...DEFAULT_ADVANCED_OPTIONS };
+  Object.keys(DEFAULT_ADVANCED_OPTIONS).forEach((key) => {
+    if (key === "excludeSymbols") {
+      normalized.excludeSymbols =
+        typeof opts.excludeSymbols === "string" ? opts.excludeSymbols : "";
+    } else {
+      normalized[key] = Boolean(opts[key]);
+    }
+  });
+
+  const enabledKeys = [
+    "lowercase",
+    "uppercase",
+    "numbers",
+    "symbols",
+    "extendedSymbols",
+    "nonLatin",
+    "emoji",
+  ];
+
+  if (!enabledKeys.some((key) => normalized[key])) {
+    normalized.lowercase = true;
+    normalized.uppercase = true;
+    normalized.numbers = true;
+  }
+
+  return normalized;
+}
+
+function loadAdvancedOptions() {
+  const saved = loadJSON(ADVANCED_OPTIONS_KEY);
+  if (saved && typeof saved === "object") {
+    return normalizeAdvancedOptions(saved);
+  }
+  return { ...DEFAULT_ADVANCED_OPTIONS };
+}
+
+function saveAdvancedOptions(opts) {
+  advancedOptions = normalizeAdvancedOptions(opts);
+  saveJSON(ADVANCED_OPTIONS_KEY, advancedOptions);
+}
+
+function isAdvancedOverlayOpen() {
+  return advancedOverlay && !advancedOverlay.classList.contains("hidden");
+}
+
+function syncAdvancedFormFromState() {
+  if (!advancedForm) return;
+  const inputs = advancedForm.querySelectorAll("input[data-adv-option]");
+  inputs.forEach((input) => {
+    const key = input.dataset.advOption;
+    input.checked = Boolean(advancedOptions[key]);
+  });
+
+  if (advancedExcludeInput) {
+    advancedExcludeInput.value = advancedOptions.excludeSymbols || "";
+  }
+}
+
+function readAdvancedFormOptions() {
+  if (!advancedForm) return { ...advancedOptions };
+  const inputs = advancedForm.querySelectorAll("input[data-adv-option]");
+  const next = { ...DEFAULT_ADVANCED_OPTIONS };
+
+  // Force mandatory options
+  next.lowercase = true;
+  next.uppercase = true;
+  next.numbers = true;
+
+  inputs.forEach((input) => {
+    const key = input.dataset.advOption;
+    if (key in next) {
+      next[key] = input.checked;
+    }
+  });
+
+  if (advancedExcludeInput) {
+    // Sanitize input to only allow symbols
+    const rawValue = advancedExcludeInput.value || "";
+    next.excludeSymbols = rawValue.replace(/[a-zA-Z0-9]/g, "");
+  }
+
+  return normalizeAdvancedOptions(next);
+}
+
+function openAdvancedOverlay() {
+  if (!advancedOverlay) return;
+  syncAdvancedFormFromState();
+  advancedOverlay.classList.remove("hidden");
+  advancedOverlay.setAttribute("aria-hidden", "false");
+  const firstInput = advancedOverlay.querySelector("input[data-adv-option]");
+  if (firstInput) {
+    firstInput.focus({ preventScroll: true });
+  } else {
+    advancedOverlay.focus({ preventScroll: true });
+  }
+}
+
+function closeAdvancedOverlay() {
+  if (!advancedOverlay) return;
+  advancedOverlay.classList.add("hidden");
+  advancedOverlay.setAttribute("aria-hidden", "true");
+  if (lastFocusedButton) {
+    lastFocusedButton.focus({ preventScroll: true });
+  } else if (advancedOptionsBtn) {
+    advancedOptionsBtn.focus({ preventScroll: true });
+  }
+}
+
+function applyAdvancedOptionsFromForm() {
+  const next = readAdvancedFormOptions();
+  if (!Object.values(next).some(Boolean)) {
+    flashToast("Turn on at least one character set.");
+    return;
+  }
+
+  saveAdvancedOptions(next);
+  closeAdvancedOverlay();
+
+  if (advancedModeEl?.checked) {
+    doGenerate();
+  }
 }
 
 function shouldShowInstallPrompt() {
@@ -508,7 +747,7 @@ async function doGenerate() {
         }
         const len = parseInt(lengthEl?.value, 10) || 12;
         output = advancedModeEl?.checked
-          ? passwordGenerator.generateUniversal(len)
+          ? passwordGenerator.generateUniversal(len, advancedOptions)
           : passwordGenerator.generateBasic(len);
         entropyInfo = passwordGenerator.calculateEntropy(output);
         break;
@@ -595,6 +834,16 @@ function updateLengthFromSlider() {
   lengthEl.value = value;
   lengthVal.textContent = value;
   setItem(settings.key, String(value));
+}
+
+function updateOptionsVisibility() {
+  const isAdvanced = advancedModeEl && advancedModeEl.checked;
+  if (advancedOptionsBtn) {
+    advancedOptionsBtn.style.display = isAdvanced ? "" : "none";
+  }
+  if (advancedOptionsMobileBtn) {
+    advancedOptionsMobileBtn.style.display = isAdvanced ? "" : "none";
+  }
 }
 
 function isPrivateMode() {
