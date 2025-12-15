@@ -1,5 +1,5 @@
 /* Username Generator Module */
-import { randInt, pick } from "../utils/crypto.js";
+import { randInt, pick, randFloat } from "../utils/crypto.js";
 
 const adjectives = [
   "Swift",
@@ -207,7 +207,7 @@ function applyLeetSpeak(text, intensity = 0.5) {
   let result = "";
   for (const char of text) {
     const lower = char.toLowerCase();
-    if (leetMap[lower] && Math.random() < intensity) {
+    if (leetMap[lower] && randFloat() < intensity) {
       const replacements = leetMap[lower];
       result += replacements[randInt(replacements.length)];
     } else {
@@ -247,7 +247,7 @@ function generateProfessional(seed) {
     const sanitized = sanitizeName(seed);
     if (sanitized) {
       // If only one word, treat as surname or firstname randomly
-      const isSurname = Math.random() > 0.5;
+      const isSurname = randFloat() > 0.5;
       if (isSurname) {
         const first = sanitizeName(
           professionalFirstNames[randInt(professionalFirstNames.length)]
@@ -290,8 +290,8 @@ function generateGamer(seed) {
   base = applyLeetSpeak(base, 0.4);
 
   // Add prefix/suffix randomly
-  const usePrefix = Math.random() < 0.5;
-  const useSuffix = Math.random() < 0.5;
+  const usePrefix = randFloat() < 0.5;
+  const useSuffix = randFloat() < 0.5;
 
   if (usePrefix) {
     base = prefixes[randInt(prefixes.length)] + base;
@@ -302,7 +302,7 @@ function generateGamer(seed) {
   }
 
   // Sometimes add numbers
-  if (Math.random() < 0.6) {
+  if (randFloat() < 0.6) {
     base += randInt(999) + 100;
   }
 
@@ -315,7 +315,7 @@ function generateRandom(seed) {
     if (cleaned) {
       const adj = modernAdjectives[randInt(modernAdjectives.length)];
       // 50% chance to put keyword first or second
-      if (Math.random() > 0.5) {
+      if (randFloat() > 0.5) {
         return `${capitalize(cleaned)}${
           modernNouns[randInt(modernNouns.length)]
         }`;
@@ -328,7 +328,7 @@ function generateRandom(seed) {
   const noun = modernNouns[randInt(modernNouns.length)];
   let handle = `${adj}${noun}`;
 
-  if (handle.length < 12 && Math.random() < 0.5) {
+  if (handle.length < 12 && randFloat() < 0.5) {
     handle += String(randInt(90) + 10);
   }
 

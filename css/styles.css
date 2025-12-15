@@ -1,5 +1,5 @@
 :root {
-  /* Colors - HSL */
+  /* Colors - HSL (Legacy) */
   --hue-base: 215;
   --hue-accent: 262;
   --hue-accent-2: 189;
@@ -7,24 +7,29 @@
   --hue-danger: 0;
   --hue-warning: 43;
 
+  /* Colors - OKLCH (Modern) */
+  --hue-base-oklch: 265;
+  --hue-accent-oklch: 290;
+  --hue-accent-2-oklch: 230;
+
   /* Semantic Colors */
-  --color-bg: hsl(var(--hue-base) 43% 10%);
-  --color-bg-alt: hsl(var(--hue-base) 50% 6%);
-  --color-card: hsl(var(--hue-base) 46% 11% / 0.95);
-  --color-text: hsl(var(--hue-base) 33% 92%);
-  --color-text-muted: hsl(var(--hue-base) 15% 68%);
-  --color-text-inverse: hsl(0 0% 100%);
+  --color-bg: oklch(18% 0.04 var(--hue-base-oklch));
+  --color-bg-alt: oklch(14% 0.04 var(--hue-base-oklch));
+  --color-card: oklch(22% 0.05 var(--hue-base-oklch) / 0.95);
+  --color-text: oklch(94% 0.01 var(--hue-base-oklch));
+  --color-text-muted: oklch(70% 0.02 var(--hue-base-oklch));
+  --color-text-inverse: oklch(100% 0 0);
 
-  --color-surface-1: hsl(var(--hue-base) 40% 15% / 0.4);
-  --color-surface-2: hsl(var(--hue-base) 40% 18% / 0.6);
-  --color-surface-3: hsl(var(--hue-base) 40% 20% / 0.5);
+  --color-surface-1: oklch(25% 0.05 var(--hue-base-oklch) / 0.4);
+  --color-surface-2: oklch(28% 0.05 var(--hue-base-oklch) / 0.6);
+  --color-surface-3: oklch(30% 0.05 var(--hue-base-oklch) / 0.5);
 
-  --color-border: hsl(var(--hue-base) 30% 30% / 0.2);
-  --color-border-hover: hsl(var(--hue-base) 30% 40% / 0.5);
+  --color-border: oklch(35% 0.05 var(--hue-base-oklch) / 0.2);
+  --color-border-hover: oklch(45% 0.06 var(--hue-base-oklch) / 0.5);
 
-  --color-accent: hsl(var(--hue-accent) 82% 59%);
-  --color-accent-glow: hsl(var(--hue-accent) 82% 59% / 0.35);
-  --color-accent-2: hsl(var(--hue-accent-2) 95% 42%);
+  --color-accent: oklch(65% 0.22 var(--hue-accent-oklch));
+  --color-accent-glow: oklch(65% 0.22 var(--hue-accent-oklch) / 0.35);
+  --color-accent-2: oklch(70% 0.18 var(--hue-accent-2-oklch));
 
   --gradient-primary: linear-gradient(
     135deg,
@@ -33,12 +38,12 @@
   );
   --gradient-surface: linear-gradient(
     180deg,
-    hsl(var(--hue-base) 40% 16% / 0.8),
-    hsl(var(--hue-base) 35% 10% / 0.9)
+    oklch(25% 0.05 var(--hue-base-oklch) / 0.8),
+    oklch(18% 0.04 var(--hue-base-oklch) / 0.9)
   );
   --gradient-fallback: var(--color-accent);
 
-  --shadow-soft: 0 1rem 2rem hsl(var(--hue-base) 70% 3% / 0.45);
+  --shadow-soft: 0 1rem 2rem oklch(10% 0.02 var(--hue-base-oklch) / 0.45);
   --shadow-glow: 0 0 2rem var(--color-accent-glow);
 
   /* Spacing & Radius */
@@ -164,7 +169,7 @@ body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   background: radial-gradient(
     circle at top,
-    hsl(var(--hue-base) 35% 17%),
+    oklch(25% 0.05 var(--hue-base-oklch)),
     var(--color-bg)
   );
   color: var(--color-text);

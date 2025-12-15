@@ -3,17 +3,27 @@
 export function randInt(n) {
   if (n <= 0) return 0;
   const cryptoAPI = window.crypto || window.msCrypto;
-  if (cryptoAPI && cryptoAPI.getRandomValues) {
-    const range = Math.floor(0xffffffff / n) * n;
-    const buf = new Uint32Array(1);
-    let candidate;
-    do {
-      cryptoAPI.getRandomValues(buf);
-      candidate = buf[0];
-    } while (candidate >= range);
-    return candidate % n;
+  if (!cryptoAPI || !cryptoAPI.getRandomValues) {
+    throw new Error("Secure random number generation is not supported.");
   }
-  return Math.floor(Math.random() * n);
+  const range = Math.floor(0xffffffff / n) * n;
+  const buf = new Uint32Array(1);
+  let candidate;
+  do {
+    cryptoAPI.getRandomValues(buf);
+    candidate = buf[0];
+  } while (candidate >= range);
+  return candidate % n;
+}
+
+export function randFloat() {
+  const cryptoAPI = window.crypto || window.msCrypto;
+  if (!cryptoAPI || !cryptoAPI.getRandomValues) {
+    throw new Error("Secure random number generation is not supported.");
+  }
+  const buf = new Uint32Array(1);
+  cryptoAPI.getRandomValues(buf);
+  return buf[0] / 0x100000000;
 }
 
 export function pick(str) {

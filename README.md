@@ -11,7 +11,7 @@ Built entirely with client-side technologies, PassG ensures that **no data ever 
 In an era of data breaches, trusting an online tool with your security credentials is hard. Here is why PassG is different:
 
 1.  **100% Client-Side Execution**: All logic runs locally in your browser. There are **no server calls** to generate passwords. You can even disconnect your internet and use it offline.
-2.  **Cryptographically Secure**: We do not use `Math.random()`. PassG utilizes the browser's `crypto.getRandomValues()` API, which provides a Cryptographically Secure Pseudo-Random Number Generator (CSPRNG) suitable for security-critical applications.
+2.  **Cryptographically Secure**: We have **completely eliminated** `Math.random()` from the codebase. PassG exclusively utilizes the browser's `crypto.getRandomValues()` API for _all_ operations—including username generation and UI randomization—ensuring zero predictability.
 3.  **Open Source**: The code is transparent. You can verify exactly how your passwords are generated. We encourage security professionals to audit our code.
 4.  **No Tracking**: We do not use analytics, cookies, or third-party trackers.
 
@@ -64,6 +64,8 @@ For the cybersecurity analysts and developers:
 - **Sanitization**: User inputs for usernames are stripped of dangerous characters using regex allowlists (`/[^a-z0-9]/g`), ensuring no malicious scripts can be injected.
 - **Memory Safety**: We use `const` and block scoping to minimize the lifespan of sensitive variables in memory, though browser garbage collection is ultimately managed by the JS engine.
 - **Content Security Policy**: A strict CSP is implemented to prevent XSS attacks and ensure only trusted resources are loaded.
+- **Modern UI Architecture**:
+  - **OKLCH Color Gamut**: Utilizes the perceptual `oklch()` color space for vibrant, accessible, and consistent theming.
 
 ---
 

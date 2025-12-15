@@ -18,6 +18,7 @@ import {
   setItem,
   clamp,
 } from "./utils/storage.js";
+import { randInt } from "./utils/crypto.js";
 
 // Polyfill for requestIdleCallback
 window.requestIdleCallback =
@@ -530,7 +531,7 @@ async function doGenerate() {
           usernameGenerator = await import("./generators/username.js");
         }
         const styles = getSelectedUsernameStyles();
-        const style = styles[Math.floor(Math.random() * styles.length)];
+        const style = styles[randInt(styles.length)];
         const keyword = usernameKeywordEl?.value || "";
         output = usernameGenerator.generateUsername({ style, keyword });
         entropyInfo = null; // No entropy for usernames
