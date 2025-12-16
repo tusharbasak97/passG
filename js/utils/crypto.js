@@ -1,8 +1,9 @@
 /* Cryptographic utilities for secure random number generation */
 
+const cryptoAPI = window.crypto || window.msCrypto;
+
 export function randInt(n) {
   if (n <= 0) return 0;
-  const cryptoAPI = window.crypto || window.msCrypto;
   if (!cryptoAPI || !cryptoAPI.getRandomValues) {
     throw new Error("Secure random number generation is not supported.");
   }
@@ -17,7 +18,6 @@ export function randInt(n) {
 }
 
 export function randFloat() {
-  const cryptoAPI = window.crypto || window.msCrypto;
   if (!cryptoAPI || !cryptoAPI.getRandomValues) {
     throw new Error("Secure random number generation is not supported.");
   }
@@ -40,4 +40,33 @@ export function shuffle(array) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+export function sample(array, size) {
+  if (!array || array.length === 0 || size <= 0) return [];
+  const n = array.length;
+  if (size >= n) return shuffle(array);
+
+  // Optimization: For small samples from large arrays (like emojis),
+  // pick random indices to avoid cloning/shuffling the entire array (O(N)).
+  if (size * 4 < n) {
+    const result = [];
+    const selectedIndices = new Set();
+    while (result.length < size) {
+      const idx = randInt(n);
+      if (!selectedIndices.has(idx)) {
+        selectedIndices.add(idx);
+        result.push(array[idx]);
+      }
+    }
+    return result;
+  }
+
+  // Otherwise, perform a partial Fisher-Yates shuffle on a copy
+  const result = [...array];
+  for (let i = 0; i < size; i++) {
+    const j = i + randInt(n - i);
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result.slice(0, size);
 }

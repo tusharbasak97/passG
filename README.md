@@ -27,6 +27,7 @@ _Why it's better:_ Most generators just pick random characters. PassG ensures ma
   - _Smart Feature_: Automatically excludes "lookalike" characters (like `1`, `l`, `I`, `0`, `O`) to prevent ambiguity when reading passwords.
 - **Advanced Mode (Universal)**: Designed for extreme security requirements.
   - _Universal Coverage_: Includes characters from extended Unicode ranges (Latin-1, Greek, Cyrillic, Math symbols).
+  - _Balanced Distribution_: Ensures that every enabled character type is represented evenly in the password, minimizing fluctuation and maximizing entropy.
   - _Guaranteed Complexity_: Algorithms ensure at least one character from every required set (Lower, Upper, Number, Symbol) is present.
   - _Fisher-Yates Shuffle_: Uses the industry-standard shuffling algorithm to ensure unbiased character distribution.
 

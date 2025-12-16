@@ -1,5 +1,5 @@
 /* Service Worker for PassG PWA */
-const CACHE_VERSION = "passg-v1.1";
+const CACHE_VERSION = "passg-v1.2";
 const CACHE_URLS = [
   "/",
   "/index.html",
@@ -12,6 +12,7 @@ const CACHE_URLS = [
   "/js/utils/storage.js",
   "/js/utils/ui.js",
   "/assets/data/eff_large_wordlist.txt",
+  "/assets/data/emojis.txt",
   "/assets/images/favicon-32x32.png",
   "/assets/images/favicon-16x16.png",
   "/assets/images/apple-touch-icon.png",

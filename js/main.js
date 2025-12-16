@@ -339,7 +339,10 @@ function setupEventListeners() {
       const sanitized = val.replace(/[a-zA-Z0-9]/g, "");
       if (val !== sanitized) {
         e.target.value = sanitized;
-        flashToast("Only symbols are allowed.");
+        // Don't show error on mobile to avoid keyboard jumping/overlay issues
+        if (!window.matchMedia("(max-width: 48rem)").matches) {
+          flashToast("Only symbols are allowed.");
+        }
       }
     });
   }
@@ -744,6 +747,7 @@ async function doGenerate() {
       case "password":
         if (!passwordGenerator) {
           passwordGenerator = await import("./generators/password.js");
+          passwordGenerator.loadEmojis();
         }
         const len = parseInt(lengthEl?.value, 10) || 12;
         output = advancedModeEl?.checked
